@@ -111,8 +111,7 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
         text = { Text(if (task.completed) "This will also remove the XP, coins and trophy earned from this task." else "This task will be removed from your day.") },
         confirmButton = { AppTextButton(onClick = { viewModel.run { GameEngine.deleteTodoTask(it, task.id) }; removing = null }) { Text("Remove") } },
         dismissButton = { AppTextButton(onClick = { removing = null }) { Text("Keep") } }) }
-    // The scroll container already insets every screen; the day header reads better flush under the bar.
-    Column(verticalArrangement = Arrangement.spacedBy(AppLayout.sectionGap), modifier = Modifier.padding(top = -AppLayout.contentGap)) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppLayout.sectionGap)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledIconButton(onClick = { viewModel.runQuiet { GameEngine.showPreviousTodoDay(it) } },
                 modifier = Modifier.size(40.dp)) {

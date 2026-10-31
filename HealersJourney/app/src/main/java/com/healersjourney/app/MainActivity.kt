@@ -300,7 +300,9 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                     scrollViewportTopPx = it.positionInRoot().y
                     scrollViewportHeightPx = it.size.height.toFloat()
                 }
-                .verticalScroll(screenScroll).padding(horizontal = 20.dp, vertical = 12.dp),
+                .verticalScroll(screenScroll).padding(start = 20.dp, end = 20.dp, bottom = 12.dp,
+                    // The planner opens with its own day header, so it needs no gap under the app bar.
+                    top = if (page == Destination.Todo) 0.dp else 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(bottom = 20.dp)) {
                     when (page) {
