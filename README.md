@@ -53,3 +53,7 @@ The five trophies use transparent PNG artwork with dimensional pixel-art shading
 ## Reward sounds
 
 Task completion uses the supplied `ribhavagrawal-point-smooth-beep-230573.mp3` (`res/raw/task_complete.mp3`). Item unlocks and the three-category/five-category bonuses use `koiroylers-get-coin-351945.mp3` (`res/raw/item_unlock.mp3`). Effects are preloaded and follow the sound toggle and phone ringer mode. Previewing an owned item does not play the unlock sound.
+
+## Today device regression
+
+`TodayNavigationCheck` under `app/src/androidTest/` opens Today repeatedly, opens/closes reset settings and revisits Journal. It uses the Android framework instrumentation APIs without completing tasks or resetting game data. Build `assembleDebugAndroidTest`, install its APK and run `adb shell am instrument -w com.life.rpg.test/com.healersjourney.app.TodayNavigationCheck`. Settings controls intentionally use Material icons rather than the strict PNG icon resolver.

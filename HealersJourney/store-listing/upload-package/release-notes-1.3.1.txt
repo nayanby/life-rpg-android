@@ -1,0 +1,3 @@
+<en-US>
+Fixed a crash when opening Today. The settings button now renders correctly, with device checks for opening Today and its daily reset settings. Includes the refreshed player tile, custom reward sounds, category tags and enlarged Store previews.
+</en-US>

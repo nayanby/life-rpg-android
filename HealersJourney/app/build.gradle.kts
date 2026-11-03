@@ -16,8 +16,9 @@ android {
         applicationId = "com.life.rpg"
         minSdk = 24
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.3"
+        testInstrumentationRunner = "com.healersjourney.app.TodayNavigationCheck"
+        versionCode = 5
+        versionName = "1.3.1"
 
         // OAuth 2.0 client ID for Google Drive sync. Replace with your own
         // Android/Web client ID from Google Cloud Console to enable sign-in.
@@ -82,6 +83,10 @@ dependencies {
 
     implementation("net.openid:appauth:0.11.1")
     implementation("com.google.android.gms:play-services-games-v2:22.1.0")
+
+    // Align the test classpath with the versions already used by the app.
+    androidTestImplementation("androidx.core:core-ktx:1.13.1")
+    androidTestImplementation("androidx.collection:collection-jvm:1.4.4")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

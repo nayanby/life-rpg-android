@@ -299,7 +299,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                         Text("${snapshot.state.coins}", style = MaterialTheme.typography.titleMedium)
                     }
                     if (destination == Destination.Todo) IconButton(onClick = { todaySettings = true }) {
-                        Icon(Icons.Filled.Settings, "Day reset settings")
+                        androidx.compose.material3.Icon(Icons.Filled.Settings, "Day reset settings")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
