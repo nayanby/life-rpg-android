@@ -33,8 +33,6 @@ import kotlin.math.sin
 @Composable
 fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destination) -> Unit) {
     val state = snapshot.state
-    var titles by remember { mutableStateOf(false) }
-    val level = Rules.level(state.totalXp)
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
             Box(Modifier.fillMaxWidth().height(252.dp)) {
@@ -55,8 +53,7 @@ fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destina
                     }
                 }
                 }
-                Image(painterResource(Art.badgeFor(Rules.title(level))), "View levels and titles",
-                    Modifier.align(Alignment.TopEnd).padding(14.dp).size(76.dp).clickable { titles = true })
+
 
             }
         }
@@ -75,7 +72,6 @@ fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destina
         }
     }
 
-    if (titles) TitleShelfDialog(level) { titles = false }
 }
 
 private enum class GrowthRange(val label: String) { Day("Day"), Week("Week"), Month("Month"), Year("Year"), Lifetime("Lifetime") }

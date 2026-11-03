@@ -1,6 +1,7 @@
 package com.healersjourney.app
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -217,6 +218,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
     var destination by rememberSaveable { mutableStateOf(Destination.Dashboard) }
     var tab by rememberSaveable { mutableStateOf(Destination.Dashboard) }
     var todaySkill by rememberSaveable { mutableStateOf<String?>(null) }
+    var showTitles by rememberSaveable { mutableStateOf(false) }
     val primary = listOf(Destination.Dashboard, Destination.Todo, Destination.Character, Destination.More)
     val retiredPages = setOf(Destination.Achievements, Destination.LearningProgress, Destination.WorkProgress, Destination.FitnessProgress, Destination.SocialProgress, Destination.CreativityProgress, Destination.RestProgress)
     val open: (Destination) -> Unit = { next ->
@@ -251,14 +253,30 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
         topBar = {
             TopAppBar(
                 title = {
-                    Column(Modifier.widthIn(max = 240.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(snapshot.state.playerName, style = MaterialTheme.typography.titleMedium, maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                        Text("Level ${Rules.level(snapshot.state.totalXp)} · ${snapshot.state.totalXp % Rules.XP_PER_LEVEL} / ${Rules.XP_PER_LEVEL} XP",
-                            style = MaterialTheme.typography.labelSmall)
-                        com.healersjourney.app.ui.components.SimpleProgress(
-                            { (snapshot.state.totalXp % Rules.XP_PER_LEVEL).toFloat() / Rules.XP_PER_LEVEL },
-                            Modifier.fillMaxWidth().height(4.dp))
+                    val expanded = destination == Destination.Dashboard
+                    androidx.compose.material3.Surface(
+                        modifier = Modifier.animateContentSize(tween(260)),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row((if (expanded) Modifier.fillMaxWidth() else Modifier.widthIn(max = 240.dp))
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Column(if (expanded) Modifier.weight(1f) else Modifier.width(180.dp),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                if (expanded) Text(snapshot.state.playerName, style = MaterialTheme.typography.titleMedium, maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                Text("Level ${Rules.level(snapshot.state.totalXp)} | ${snapshot.state.totalXp % Rules.XP_PER_LEVEL} / ${Rules.XP_PER_LEVEL} XP",
+                                    style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                                com.healersjourney.app.ui.components.SimpleProgress(
+                                    { (snapshot.state.totalXp % Rules.XP_PER_LEVEL).toFloat() / Rules.XP_PER_LEVEL },
+                                    Modifier.fillMaxWidth().height(4.dp))
+                            }
+                            if (expanded) Image(painterResource(Art.badgeFor(Rules.title(Rules.level(snapshot.state.totalXp)))) ,
+                                "View levels and titles", Modifier.size(44.dp).clickable { showTitles = true })
+                        }
                     }
                 },
                 navigationIcon = {
@@ -342,6 +360,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
             }
         }
     }
+    if (showTitles) TitleShelfDialog(Rules.level(snapshot.state.totalXp)) { showTitles = false }
     com.healersjourney.app.ui.components.RewardCelebration(viewModel)
 
 }
