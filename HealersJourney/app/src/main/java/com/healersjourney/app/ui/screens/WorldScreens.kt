@@ -47,7 +47,7 @@ fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destina
                         "cat", "dragon", "fox", "bunny" -> Alignment.BottomCenter
                         else -> Alignment.Center
                     }
-                    Box(Modifier.size(width = 96.dp, height = 176.dp).clickable(role = Role.Button) { onOpen(Destination.Character) },
+                    Box(Modifier.size(width = 96.dp, height = 176.dp),
                         contentAlignment = place) {
                         CompanionArt(companion, Modifier.size(if (companion == "dragon") 96.dp else 80.dp))
                     }
