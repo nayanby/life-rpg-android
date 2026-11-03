@@ -82,6 +82,7 @@ class GameState {
     val recurringTasks: MutableList<RecurringTask> = mutableListOf()
     val scheduledOccurrences: MutableSet<String> = mutableSetOf()
     var focusSession: FocusSession? = null
+    var dayResetHour: Int = 5
     var playerName: String = "Nayan"
     var onboardingCompleted: Boolean = false
     var totalXp: Int = 0

@@ -20,7 +20,6 @@ import com.healersjourney.app.ui.components.*
 fun MilestonesScreen(snapshot: GameSnapshot, viewModel: GameViewModel) {
     val state = snapshot.state
     var section by rememberSaveable { mutableIntStateOf(0) }
-    var filter by rememberSaveable { mutableStateOf("Ahead") }
     var adding by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Milestone?>(null) }
     var deleting by remember { mutableStateOf<Milestone?>(null) }
@@ -39,18 +38,9 @@ fun MilestonesScreen(snapshot: GameSnapshot, viewModel: GameViewModel) {
             }
             AppButton(onClick = { adding = true }) { Text("Add") }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf("Ahead", "Remembered", "All").forEach { label ->
-                FilterChip(filter == label, { filter = label }, label = {
-                    Text("$label ${when(label) { "Ahead" -> state.milestones.count { !it.completed }; "Remembered" -> state.milestones.count { it.completed }; else -> state.milestones.size }}")
-                })
-            }
-        }
-        val milestones = state.milestones.filter { when(filter) { "Ahead" -> !it.completed; "Remembered" -> it.completed; else -> true } }
-            .sortedWith(compareByDescending<Milestone> { it.showOnMain }.thenByDescending { it.completedDate })
-        if (milestones.isEmpty()) SectionCard(if (filter == "Remembered") "Your story is still unfolding" else "Something to look forward to") {
-            Text(if (filter == "Remembered") "Your completed milestones will be collected here, with the date you reached them."
-                else "A first 5K, finishing a course, or a meaningful day. Add a milestone in your own words.", style = MaterialTheme.typography.bodyMedium)
+        val milestones = state.milestones.sortedWith(compareByDescending<Milestone> { it.showOnMain }.thenByDescending { it.completedDate })
+        if (milestones.isEmpty()) SectionCard("Your milestones") {
+            Text("Add meaningful moments to remember: finishing a course, a first 5K, or a special day.")
         }
         milestones.forEach { milestone ->
             Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface) {

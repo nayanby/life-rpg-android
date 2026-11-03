@@ -4,6 +4,8 @@ import java.util.Calendar
 
 object Dates {
 
+    @Volatile var resetHour: Int = 5
+
     fun dateKeyOf(cal: Calendar): String {
         val y = cal.get(Calendar.YEAR)
         val m = cal.get(Calendar.MONTH) + 1
@@ -22,20 +24,20 @@ object Dates {
         return cal
     }
 
-    /** The 5 AM game-day key: before 5 AM the day still counts as the previous day. */
+    /** Before the configured reset hour, activities still belong to the previous game day. */
     fun gameDayKey(now: Calendar = Calendar.getInstance()): String {
         val cal = now.clone() as Calendar
-        if (cal.get(Calendar.HOUR_OF_DAY) < 5) cal.add(Calendar.DAY_OF_MONTH, -1)
+        if (cal.get(Calendar.HOUR_OF_DAY) < resetHour) cal.add(Calendar.DAY_OF_MONTH, -1)
         return dateKeyOf(cal)
     }
 
     fun studyDateKey(now: Calendar = Calendar.getInstance()): String = gameDayKey(now)
 
-    /** Milliseconds left until the next 5 AM rollover of the current study/game cycle. */
+    /** Milliseconds until the configured rollover. Name retained for existing callers. */
     fun millisUntilFiveAm(nowMillis: Long = System.currentTimeMillis()): Long {
         val target = Calendar.getInstance()
         target.timeInMillis = nowMillis
-        target.set(Calendar.HOUR_OF_DAY, 5)
+        target.set(Calendar.HOUR_OF_DAY, resetHour)
         target.set(Calendar.MINUTE, 0)
         target.set(Calendar.SECOND, 0)
         target.set(Calendar.MILLISECOND, 0)

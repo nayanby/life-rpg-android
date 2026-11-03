@@ -19,7 +19,7 @@ fun AchievementMedal(achievement: Achievement, tier: Int) {
     val rim = colors[tier.coerceAtMost(colors.lastIndex)]
     val skill = when(achievement.group) {
         "Study", "Learning" -> "knowledgeXp"; "Work" -> "medicineXp"; "Fitness" -> "strengthXp"
-        "Social" -> "socialXp"; "Creativity" -> "hobbiesXp"; "Sleep" -> "sleep"; else -> ""
+        "Social" -> "socialXp"; "Creativity", "Hobbies" -> "hobbiesXp"; "Sleep" -> "sleep"; else -> ""
     }
     Box(Modifier.size(64.dp).background(rim.copy(alpha=if(achievement.unlocked) .25f else .09f),CircleShape)
         .border(if(achievement.unlocked) 4.dp else 2.dp,rim.copy(alpha=if(achievement.unlocked) 1f else .35f),CircleShape),contentAlignment=Alignment.Center) {

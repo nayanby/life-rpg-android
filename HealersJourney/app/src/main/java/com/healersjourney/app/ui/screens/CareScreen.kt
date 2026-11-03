@@ -93,7 +93,7 @@ fun CareScreen(snapshot: GameSnapshot, viewModel: GameViewModel) {
             Text("Hold a routine to edit its frequency or remove it.", style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             stats.items.forEachIndexed { index, item ->
-                val done = item.last == Dates.todayKey()
+                val done = item.last == Dates.gameDayKey()
                 Row(Modifier.fillMaxWidth().combinedClickable(onClick = {}, onLongClickLabel = "Edit routine", onLongClick = { editing = item; editorOpen = true }).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Image(com.healersjourney.app.ui.components.gameArtPainter(com.healersjourney.app.ui.components.AppIcons.care(item.key)), null, Modifier.size(28.dp))
                     Spacer(Modifier.width(8.dp))
@@ -105,22 +105,7 @@ fun CareScreen(snapshot: GameSnapshot, viewModel: GameViewModel) {
                     Spacer(Modifier.width(4.dp))
                     if (done) Text("Done ✓", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                     else Button(onClick = {
-                        val now = Calendar.getInstance()
-                        DatePickerDialog(context, { _, year, month, day ->
-                            val selected = Calendar.getInstance().apply { set(year, month, day) }
-                            val date = Dates.dateKeyOf(selected)
-                            viewModel.run { current ->
-                                val result = GameEngine.completePersonalCare(current, item.key, date)
-                                if (result is com.healersjourney.app.domain.Outcome.Applied) {
-                                    viewModel.showMessage("${item.label} logged for ${Dates.prettyCareDate(date)}")
-                                }
-                                result
-                            }
-                        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)).apply {
-                            setTitle("${item.label}: date completed")
-                            datePicker.maxDate = System.currentTimeMillis()
-                            show()
-                        }
+                        viewModel.run { GameEngine.completePersonalCare(it, item.key) }
                     }) { Text("Log") }
                 }
                 if (index < stats.items.lastIndex) androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

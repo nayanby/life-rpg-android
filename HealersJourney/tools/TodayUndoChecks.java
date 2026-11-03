@@ -6,6 +6,7 @@ public final class TodayUndoChecks {
     public static void main(String[] args) {
         GameEngine engine = GameEngine.INSTANCE;
         GameState state = new GameState();
+        state.setCareRoutinesConfigured(true); // These checks isolate planned tasks; care integration has its own suite.
         String day = Dates.INSTANCE.gameDayKey(java.util.Calendar.getInstance());
         engine.ensureDefaults(state);
         check(engine.addTodoTask(state, "Read", "knowledgeXp", 30) instanceof Outcome.Applied, "Add task");

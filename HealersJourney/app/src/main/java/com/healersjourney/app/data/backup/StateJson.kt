@@ -31,7 +31,7 @@ object StateJson {
     fun encodeLocalExtras(state: GameState): JSONObject {
         val all = encode(state)
         val extras = JSONObject()
-        listOf("thoughts", "planning", "onboardingCompleted", "worldUnlocks", "worldEquipment", "coins", "coinRewardDays", "coinAwardedActionIds", "coinDebt", "adventureClaims", "dailyQuestDate", "dailyQuestIds",
+        listOf("dayResetHour", "thoughts", "planning", "onboardingCompleted", "worldUnlocks", "worldEquipment", "coins", "coinRewardDays", "coinAwardedActionIds", "coinDebt", "adventureClaims", "dailyQuestDate", "dailyQuestIds",
             "soundEnabled", "hapticsEnabled", "careRoutines", "careDefaultsVersion").forEach { extras.put(it, all.get(it)) }
         extras.put("actionActivityIds", JSONObject().apply {
             state.actionHistory.forEach { action -> action.activityId?.let { put(action.id, it) } }
@@ -44,6 +44,7 @@ object StateJson {
         val saved = decode(text)
         PlanningJson.restore(state, extras.optJSONObject("planning"))
         state.thoughts.addAll(saved.thoughts)
+        state.dayResetHour = saved.dayResetHour
         state.onboardingCompleted = saved.onboardingCompleted
         state.worldUnlocks.addAll(saved.worldUnlocks)
         state.worldEquipment.putAll(saved.worldEquipment)
@@ -86,6 +87,7 @@ object StateJson {
         .put("thoughts", JSONArray().apply { state.thoughts.forEach { entry -> put(JSONObject()
             .put("id", entry.id).put("date", entry.date).put("text", entry.text)) } })
         .put("planning", PlanningJson.encode(state))
+        .put("dayResetHour", state.dayResetHour)
         .put("playerName", state.playerName)
         .put("onboardingCompleted", state.onboardingCompleted)
         .put("worldUnlocks", JSONArray(state.worldUnlocks.toList()))
@@ -287,6 +289,7 @@ object StateJson {
             if (savedIndex >= 0 && entry.optString("id").isNotBlank()) state.thoughts[savedIndex] = state.thoughts[savedIndex].copy(id = entry.getString("id"))
         } }
         PlanningJson.restore(state, json.optJSONObject("planning"))
+        state.dayResetHour = json.optInt("dayResetHour", 5).coerceIn(0, 23)
         state.playerName = json.optString("playerName", state.playerName)
         // Existing saves predate onboarding and should open without an extra setup step.
         state.onboardingCompleted = json.optBoolean("onboardingCompleted", true)

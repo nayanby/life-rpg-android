@@ -9,6 +9,7 @@ public final class PlanningChecks {
         Planning plan = Planning.INSTANCE;
         GameEngine engine = GameEngine.INSTANCE;
         GameState state = new GameState();
+        state.setCareRoutinesConfigured(true); // These checks isolate planned tasks; care integration has its own suite.
         engine.ensureDefaults(state);
         String day = state.getTodoDate();
         int weekday = plan.weekday(day);

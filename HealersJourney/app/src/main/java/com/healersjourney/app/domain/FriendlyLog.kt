@@ -16,7 +16,7 @@ object FriendlyLog {
         else -> "Completed ${label.trim()}"
     }
 
-    fun action(action: ActionEntry): String = when (action.type) {
+    fun action(action: ActionEntry): String = if (action.careKey != null) care(action.name, action.careKey) else when (action.type) {
         "care" -> care(action.name, action.careKey)
         "sleep" -> "Slept for ${GameEngine.numText(action.hours)} hours"
         "study" -> "Studied for ${GameEngine.numText(action.hours)} hours"

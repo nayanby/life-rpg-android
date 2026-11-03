@@ -8,7 +8,7 @@ object DailyShowcase {
         Collection("medicineXp", "Work"),
         Collection("strengthXp", "Fitness"),
         Collection("socialXp", "Social"),
-        Collection("hobbiesXp", "Creativity")
+        Collection("hobbiesXp", "Hobbies")
     )
     fun collection(skill: String) = collections.firstOrNull { it.skill == skill }
     fun entries(state: GameState, day: String): List<ActionEntry> = state.actionHistory.asReversed().filter {

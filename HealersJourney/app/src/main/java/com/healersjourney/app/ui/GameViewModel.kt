@@ -96,6 +96,7 @@ class GameViewModel(
     }
 
     private fun commit(forceBackup: Boolean = false) {
+        GameEngine.ensureTodoTasks(current)
         WorldRules.reconcile(current)
         publish()
         persist(forceBackup)
@@ -107,7 +108,11 @@ class GameViewModel(
 
     fun refreshPlanning() {
         val today = com.healersjourney.app.domain.Dates.gameDayKey()
-        val needsRefresh = current.todoDate != today || current.recurringTasks.any {
+        val needsRefresh = current.todoDate != today || current.careRoutines.any { rule ->
+            val last = current.personalCareLast[rule.key].orEmpty()
+            (last.isEmpty() || com.healersjourney.app.domain.Dates.daysBetween(today, last) >= rule.cycleDays) &&
+                GameEngine.careTaskId(rule.key, today) !in current.scheduledOccurrences
+        } || current.recurringTasks.any {
             today >= it.start && com.healersjourney.app.domain.Planning.weekday(today) in it.weekdays &&
                 com.healersjourney.app.domain.Planning.occurrenceId(it, today) !in current.scheduledOccurrences
         }

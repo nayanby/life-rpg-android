@@ -48,10 +48,10 @@ fun MyNotesScreen(snapshot: GameSnapshot, viewModel: GameViewModel,
             screenScroll.animateScrollTo(editorTopInContentPx.coerceAtLeast(0),
                 androidx.compose.animation.core.tween(220))
         }
-        // Halving the visible height keeps the caret line near the middle of what the keyboard leaves us.
+        // Fill the available editor space down to the keyboard.
         val fieldMaxHeight = if (keyboardOpen)
-            minOf(560.dp, with(density) { (scrollViewportHeightPx * 0.5f).toDp() }) else 560.dp
-        val fieldMinHeight = minOf(if (keyboardOpen) 200.dp else 340.dp, fieldMaxHeight)
+            minOf(560.dp, with(density) { (scrollViewportHeightPx - 80.dp.toPx()).coerceAtLeast(100.dp.toPx()).toDp() }) else 560.dp
+        val fieldMinHeight = if (keyboardOpen) fieldMaxHeight else minOf(340.dp, fieldMaxHeight)
         Column(Modifier.onGloballyPositioned { coordinates ->
             editorTopInContentPx =
                 (coordinates.positionInRoot().y - scrollViewportTopPx + screenScroll.value).roundToInt()

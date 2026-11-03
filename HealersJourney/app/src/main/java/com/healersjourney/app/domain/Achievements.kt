@@ -85,10 +85,10 @@ object Achievements {
     val METRIC_LABELS = mapOf(
         "totalXp" to "Total XP", "level" to "Level", "streak" to "Action streak",
         "knowledgeXp" to "Study XP", "medicineXp" to "Work XP",
-        "strengthXp" to "Fitness XP", "socialXp" to "Social XP", "hobbiesXp" to "Creativity XP",
+        "strengthXp" to "Fitness XP", "socialXp" to "Social XP", "hobbiesXp" to "Hobbies XP",
         "weeklyKnowledgeXp" to "Weekly Study XP", "weeklyMedicineXp" to "Weekly Work XP",
         "weeklyStrengthXp" to "Weekly Fitness XP", "weeklySocialXp" to "Weekly Social XP",
-        "weeklyHobbiesXp" to "Weekly Creativity XP",
+        "weeklyHobbiesXp" to "Weekly Hobbies XP",
         "studyHours" to "Lifetime study hours", "weeklyStudyHours" to "Current week study hours",
         "workoutDays" to "Lifetime workout days", "weeklyWorkoutDays" to "Current week workout days",
         "hobbySessions" to "Lifetime hobby sessions", "musicSessions" to "Music sessions",
@@ -223,22 +223,22 @@ object Achievements {
         add("Social", "Festival Heart", "Celebrate 50 birthdays.", birthdayActions >= 50, birthdayActions.toDouble(), 50.0)
 
         // Hobbies
-        add("Creativity", "Hobby Door Opened", "Complete your first hobby session.", hobbyActions >= 1, hobbyActions.toDouble(), 1.0)
-        add("Creativity", "Hobby Explorer", "Complete 10 hobby sessions.", hobbyActions >= 10, hobbyActions.toDouble(), 10.0)
-        add("Creativity", "Hobby Builder", "Complete 25 hobby sessions.", hobbyActions >= 25, hobbyActions.toDouble(), 25.0)
-        add("Creativity", "Hobby Keeper", "Complete 50 hobby sessions.", hobbyActions >= 50, hobbyActions.toDouble(), 50.0)
-        add("Creativity", "Hobby Master", "Complete 100 hobby sessions.", hobbyActions >= 100, hobbyActions.toDouble(), 100.0)
-        add("Creativity", "First Song Session", "Complete your first music session.", musicSessions >= 1, musicSessions.toDouble(), 1.0)
-        add("Creativity", "Music Beginner", "Complete 5 music sessions.", musicSessions >= 5, musicSessions.toDouble(), 5.0)
-        add("Creativity", "Rhythm Keeper", "Complete 10 music sessions.", musicSessions >= 10, musicSessions.toDouble(), 10.0)
-        add("Creativity", "Melody Builder", "Complete 25 music sessions.", musicSessions >= 25, musicSessions.toDouble(), 25.0)
-        add("Creativity", "First Chess Session", "Complete your first chess session.", chessSessions >= 1, chessSessions.toDouble(), 1.0)
-        add("Creativity", "Chess Trainee", "Complete 5 chess sessions.", chessSessions >= 5, chessSessions.toDouble(), 5.0)
-        add("Creativity", "Tactical Thinker", "Complete 10 chess sessions.", chessSessions >= 10, chessSessions.toDouble(), 10.0)
-        add("Creativity", "Board Strategist", "Complete 25 chess sessions.", chessSessions >= 25, chessSessions.toDouble(), 25.0)
-        add("Creativity", "Hobby Shelf", "Keep 3 hobbies in your hobby list.", hobbyCount >= 3, hobbyCount.toDouble(), 3.0)
-        add("Creativity", "Creative Toolkit", "Keep 5 hobbies in your hobby list.", hobbyCount >= 5, hobbyCount.toDouble(), 5.0)
-        add("Creativity", "Passion Library", "Keep 10 hobbies in your hobby list.", hobbyCount >= 10, hobbyCount.toDouble(), 10.0)
+        add("Hobbies", "Hobby Door Opened", "Complete your first hobby session.", hobbyActions >= 1, hobbyActions.toDouble(), 1.0)
+        add("Hobbies", "Hobby Explorer", "Complete 10 hobby sessions.", hobbyActions >= 10, hobbyActions.toDouble(), 10.0)
+        add("Hobbies", "Hobby Builder", "Complete 25 hobby sessions.", hobbyActions >= 25, hobbyActions.toDouble(), 25.0)
+        add("Hobbies", "Hobby Keeper", "Complete 50 hobby sessions.", hobbyActions >= 50, hobbyActions.toDouble(), 50.0)
+        add("Hobbies", "Hobby Master", "Complete 100 hobby sessions.", hobbyActions >= 100, hobbyActions.toDouble(), 100.0)
+        add("Hobbies", "First Song Session", "Complete your first music session.", musicSessions >= 1, musicSessions.toDouble(), 1.0)
+        add("Hobbies", "Music Beginner", "Complete 5 music sessions.", musicSessions >= 5, musicSessions.toDouble(), 5.0)
+        add("Hobbies", "Rhythm Keeper", "Complete 10 music sessions.", musicSessions >= 10, musicSessions.toDouble(), 10.0)
+        add("Hobbies", "Melody Builder", "Complete 25 music sessions.", musicSessions >= 25, musicSessions.toDouble(), 25.0)
+        add("Hobbies", "First Chess Session", "Complete your first chess session.", chessSessions >= 1, chessSessions.toDouble(), 1.0)
+        add("Hobbies", "Chess Trainee", "Complete 5 chess sessions.", chessSessions >= 5, chessSessions.toDouble(), 5.0)
+        add("Hobbies", "Tactical Thinker", "Complete 10 chess sessions.", chessSessions >= 10, chessSessions.toDouble(), 10.0)
+        add("Hobbies", "Board Strategist", "Complete 25 chess sessions.", chessSessions >= 25, chessSessions.toDouble(), 25.0)
+        add("Hobbies", "Hobby Shelf", "Keep 3 hobbies in your hobby list.", hobbyCount >= 3, hobbyCount.toDouble(), 3.0)
+        add("Hobbies", "Creative Toolkit", "Keep 5 hobbies in your hobby list.", hobbyCount >= 5, hobbyCount.toDouble(), 5.0)
+        add("Hobbies", "Passion Library", "Keep 10 hobbies in your hobby list.", hobbyCount >= 10, hobbyCount.toDouble(), 10.0)
 
         // Sleep
         add("Sleep", "Sleep Logger", "Log sleep once.", sleep.entries >= 1, sleep.entries.toDouble(), 1.0)
@@ -275,7 +275,7 @@ object Achievements {
         return base + customList(state)
     }
 
-    val GROUP_ORDER = listOf("Overall", "Study", "Work", "Fitness", "Social", "Creativity", "Sleep", "Finance")
+    val GROUP_ORDER = listOf("Overall", "Study", "Work", "Fitness", "Social", "Hobbies", "Sleep", "Finance")
 
     fun grouped(state: GameState): Map<String, List<Achievement>> {
         val all = all(state)
@@ -302,7 +302,7 @@ object Achievements {
             "Study" -> 7200.0
             "Fitness" -> 6800.0
             "Social" -> 6400.0
-            "Creativity" -> 6000.0
+            "Hobbies" -> 6000.0
             "Sleep" -> 5600.0
             else -> 4000.0
         }

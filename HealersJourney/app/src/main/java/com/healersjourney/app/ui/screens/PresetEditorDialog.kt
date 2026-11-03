@@ -21,6 +21,10 @@ fun PresetEditorDialog(skill: String, snapshot: GameSnapshot, viewModel: GameVie
     var name by remember { mutableStateOf(initialActivity?.let { Rules.activityLabel(skill, it.name) } ?: initialName) }
     var xp by remember { mutableStateOf(initialActivity?.xp?.toString() ?: "20") }
     var selectedSkill by remember { mutableStateOf(skill) }
+    val existingRule = snapshot.state.recurringTasks.firstOrNull { it.id == "saved-${initialActivity?.id}" ||
+        (initialActivity != null && it.skill == skill && it.name.equals(Rules.activityLabel(skill, initialActivity.name), true)) }
+    var repeat by remember { mutableStateOf(existingRule != null) }
+    var days by remember { mutableStateOf(existingRule?.weekdays ?: setOf(1, 2, 3, 4, 5)) }
     when (mode) {
         "actions" -> AlertDialog(onDismissRequest = onDismiss,
             title = { Text(Rules.activityLabel(skill, initialActivity!!.name)) },
@@ -32,6 +36,7 @@ fun PresetEditorDialog(skill: String, snapshot: GameSnapshot, viewModel: GameVie
             confirmButton = { TextButton(onClick = {
                 viewModel.run { state ->
                     val result = GameEngine.removeActivityById(state, skill, initialActivity!!.id)
+                    if (result is Outcome.Applied) existingRule?.let { Planning.removeRecurring(state, it.id) }
                     if (result is Outcome.Applied) onDismiss()
                     result
                 }
@@ -43,14 +48,24 @@ fun PresetEditorDialog(skill: String, snapshot: GameSnapshot, viewModel: GameVie
                 OutlinedTextField(name, { name = it }, label = { Text("Activity name") }, singleLine = true)
                 if (initialActivity == null) CategoryPicker(selectedSkill) { selectedSkill = it }
                 ActivityXpField(xp) { xp = it }
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Checkbox(repeat, { repeat = it }); Text("Add automatically on selected days")
+                }
+                if (repeat) WeekdayPicker(days) { days = it }
                 Text("Changes apply to future logs. Earned XP stays the same.", style = MaterialTheme.typography.bodySmall)
             } },
-            confirmButton = { TextButton(enabled = name.isNotBlank() && (xp.toIntOrNull() ?: -1) in 0..10000, onClick = {
+            confirmButton = { TextButton(enabled = name.isNotBlank() && (xp.toIntOrNull() ?: -1) in 0..10000 && (!repeat || days.isNotEmpty()), onClick = {
                 viewModel.run { state ->
                     val savedName = if (initialActivity != null && name.trim() == Rules.activityLabel(skill, initialActivity.name)) initialActivity.name else name
                     val result = if (initialActivity == null) GameEngine.addActivity(state, selectedSkill, savedName, xp.toInt())
                         else GameEngine.updateActivityById(state, skill, initialActivity.id, savedName, xp.toInt())
-                    if (result is Outcome.Applied) onDismiss()
+                    if (result is Outcome.Applied) {
+                        val activity = initialActivity ?: (state.activityDefs[selectedSkill]?.let { it.major + it.other }).orEmpty().firstOrNull { it.name == savedName.trim() }
+                        val ruleId = existingRule?.id ?: "saved-${activity?.id}"
+                        if (repeat) Planning.saveRecurring(state, ruleId, Rules.activityLabel(selectedSkill, savedName.trim()), selectedSkill, xp.toInt(), days)
+                        else existingRule?.let { Planning.removeRecurring(state, it.id) }
+                        onDismiss()
+                    }
                     result
                 }
             }) { Text("Save") } },

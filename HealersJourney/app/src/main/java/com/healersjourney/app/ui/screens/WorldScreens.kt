@@ -36,14 +36,6 @@ fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destina
     var titles by remember { mutableStateOf(false) }
     val level = Rules.level(state.totalXp)
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center) {
-            Box(Modifier.width(22.dp).height(1.dp).background(Color(0xFFB89056)))
-            Text("LEVEL $level  ·  ${Rules.title(level)}",
-                Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFFFFD99A))
-            Box(Modifier.width(22.dp).height(1.dp).background(Color(0xFFB89056)))
-        }
         Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
             Box(Modifier.fillMaxWidth().height(252.dp)) {
                 Image(gameArtPainter(GameArt.backdrop(state.worldEquipment["backdrop"])), null,
@@ -65,15 +57,7 @@ fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destina
                 }
                 Image(painterResource(Art.badgeFor(Rules.title(level))), "View levels and titles",
                     Modifier.align(Alignment.TopEnd).padding(14.dp).size(76.dp).clickable { titles = true })
-                Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-                    .background(Color(0xDD101D2B)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("XP progress", style = MaterialTheme.typography.labelSmall, color = Color.White)
-                        Text("${Rules.XP_PER_LEVEL - state.totalXp % Rules.XP_PER_LEVEL} XP to next", style = MaterialTheme.typography.labelSmall, color = Color(0xFFD2C7AF))
-                    }
-                    SimpleProgress({ (state.totalXp % Rules.XP_PER_LEVEL).toFloat() / Rules.XP_PER_LEVEL },
-                        Modifier.fillMaxWidth().padding(top = 5.dp).height(4.dp), color = Color(0xFFF3BC67))
-                }
+
             }
         }
         GrowthRadar(state, snapshot.revision)
@@ -96,10 +80,9 @@ fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destina
 
 private enum class GrowthRange(val label: String) { Day("Day"), Week("Week"), Month("Month"), Year("Year"), Lifetime("Lifetime") }
 
-private fun growthValues(state: GameState, range: GrowthRange): List<Int> {
+private fun growthValues(state: GameState, range: GrowthRange, day: String = Dates.gameDayKey()): List<Int> {
     val skills = Rules.SKILL_KEYS
     if (range == GrowthRange.Lifetime) return skills.map { state.skillXp(it).coerceAtLeast(0) }
-    val day = Dates.gameDayKey()
     val actions = state.actionHistory.filter { action ->
         action.skill in skills && action.type in setOf("activity", "study", "hobby", "other") && when (range) {
             GrowthRange.Day -> action.date == day
@@ -120,15 +103,15 @@ private fun GrowthRadar(state: GameState, revision: Int) {
     }
     val skills = Rules.SKILL_KEYS
     val ranges = GrowthRange.entries
-    val pager = rememberPagerState(pageCount = { ranges.size })
+    val pager = rememberPagerState(initialPage = 1, pageCount = { ranges.size + 1 })
     val day = Dates.gameDayKey()
-    val valuesByRange = remember(revision, day) { ranges.map { growthValues(state, it) } }
+    val valuesByRange = remember(revision, day) { listOf(growthValues(state, GrowthRange.Day, Dates.addDays(day, -1))) + ranges.map { growthValues(state, it) } }
     Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Your growth", style = MaterialTheme.typography.titleMedium)
-                Text(ranges[pager.currentPage].label, style = MaterialTheme.typography.labelLarge,
+                Text(if (pager.currentPage == 0) "Yesterday" else ranges[pager.currentPage - 1].label, style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary)
             }
             HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth().height(390.dp)) { page ->
@@ -198,7 +181,7 @@ private fun GrowthRadar(state: GameState, revision: Int) {
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                ranges.indices.forEach { index ->
+                (0..ranges.size).forEach { index ->
                     Box(Modifier.size(width = if (index == pager.currentPage) 16.dp else 6.dp, height = 6.dp)
                         .clip(CircleShape)
                         .background(if (index == pager.currentPage) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant))

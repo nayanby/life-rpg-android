@@ -10,6 +10,7 @@ public final class JournalAndGoalsChecks {
         Planning plan = Planning.INSTANCE;
         StateJson json = StateJson.INSTANCE;
         GameState state = new GameState();
+        state.setCareRoutinesConfigured(true); // These checks isolate planned tasks; care integration has its own suite.
         engine.ensureDefaults(state);
         String today = Dates.INSTANCE.todayKey();
         String day = Dates.INSTANCE.gameDayKey(Calendar.getInstance());

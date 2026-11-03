@@ -127,7 +127,7 @@ fun HobbiesScreen(snapshot: GameSnapshot, viewModel: GameViewModel) {
         }
 
         SectionCard(title = "Creative progress", collapsible = true, initiallyExpanded = false) {
-            StatLine("Creativity XP", "${state.hobbiesXp}", color)
+            StatLine("Hobbies XP", "${state.hobbiesXp}", color)
             StatLine(
                 "This week",
                 "${GameEngine.weeklyXp(state, "hobbiesXp")} / ${Rules.WEEKLY_TARGETS["hobbiesXp"]}"

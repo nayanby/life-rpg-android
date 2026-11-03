@@ -33,14 +33,14 @@ fun DayShowcase(state: GameState, day: String, revision: Int) {
         TrophyDetail(state, action) { selectedId = null }
     }
     var page by rememberSaveable(day) { mutableIntStateOf(0) }
-    val pages = maxOf(1, (entries.size + 7) / 8)
+    val pages = maxOf(1, (entries.size + 23) / 24)
     val currentPage = page.coerceIn(0, pages - 1)
-    val visible = entries.drop(currentPage * 8).take(8)
+    val visible = entries.drop(currentPage * 24).take(24)
     var knownIds by remember(day) { mutableStateOf(entries.map { it.id }.toSet()) }
     LaunchedEffect(day, entries.map { it.id }) {
         val added = entries.lastOrNull { it.id !in knownIds }
         if(added != null) {
-            page = entries.indexOfFirst { it.id == added.id } / 8
+            page = entries.indexOfFirst { it.id == added.id } / 24
         }
         knownIds = entries.map { it.id }.toSet()
     }
@@ -49,9 +49,7 @@ fun DayShowcase(state: GameState, day: String, revision: Int) {
     val gold = if (dark) Color(0xFFFFE1A5) else Color(0xFF8A5A00)
     val slotFill = if (dark) Color(0xFF2F4A5C) else Color.White
     val slotEdge = if (dark) Color(0x40FFE1A5) else Color(0x1F000000)
-    // Display height, not window height, so the card does not resize when the keyboard opens.
-    val minCardHeight = with(LocalDensity.current) { LocalContext.current.resources.displayMetrics.heightPixels.toDp() * .25f }
-    Surface(Modifier.fillMaxWidth().heightIn(min = minCardHeight), shape = RoundedCornerShape(24.dp),
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp),
         color = colors.surfaceVariant, border = BorderStroke(1.dp, slotEdge)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -60,19 +58,19 @@ fun DayShowcase(state: GameState, day: String, revision: Int) {
                 AppTextButton(onClick = { collectionOpen = true }) { Text("Collection", color = gold) }
             }
             BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                val slot = ((maxWidth - 24.dp) / 4).coerceAtMost(84.dp)
-                if (entries.isEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    repeat(4) { TrophySlot(slot, slotFill, slotEdge, null, null) {} }
+                val slot = ((maxWidth - 30.dp) / 6).coerceAtMost(52.dp)
+                if (entries.isEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    repeat(6) { TrophySlot(slot, slotFill, slotEdge, null, null) {} }
                 } else Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    visible.chunked(4).forEach { rowItems ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    visible.chunked(6).forEach { rowItems ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             rowItems.forEach { action ->
                                 TrophySlot(slot, slotFill, slotEdge, action.skill,
                                     "${DailyShowcase.collection(action.skill)?.title} trophy: ${action.originalName ?: action.name}") {
                                     selectedId = action.id
                                 }
                             }
-                            repeat(4 - rowItems.size) { TrophySlot(slot, slotFill, slotEdge, null, null) {} }
+                            repeat(6 - rowItems.size) { TrophySlot(slot, slotFill, slotEdge, null, null) {} }
                         }
                     }
                 }

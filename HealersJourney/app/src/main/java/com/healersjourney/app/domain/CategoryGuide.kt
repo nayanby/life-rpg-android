@@ -18,11 +18,11 @@ object CategoryGuide {
             listOf("Go for a walk", "Complete a workout", "Stretch for ten minutes", "Do a yoga session", "Play a sport")
         )
         "socialXp" -> Description(
-            "Care for your connections and everyday life at home. Social includes time with people, helping others and household errands or responsibilities.",
-            listOf("Call family or meet a friend", "Send a thoughtful message", "Buy groceries or run an errand", "Do laundry or clean your home", "Pay household bills or help at home")
+            "Care for your connections and everyday life at home. Social includes time with people, helping others, personal care and household responsibilities.",
+            listOf("Call family or meet a friend", "Send a thoughtful message", "Buy groceries or run an errand", "Do laundry or clean your home", "Shower, trim nails or do your care routines")
         )
         "hobbiesXp" -> Description(
-            "Make room for hobbies, imagination and things you enjoy creating. Use Creativity for expression, practice and playful projects.",
+            "Make room for hobbies, imagination and things you enjoy creating. Use Hobbies for expression, practice and playful projects.",
             listOf("Draw, paint or write", "Practice a musical instrument", "Work on a craft", "Take photographs", "Play chess or solve a puzzle")
         )
         else -> null

@@ -33,7 +33,7 @@ object Rules {
         "Medicine" -> "Work"
         "Knowledge", "Learning", "Study" -> "Study"
         "Strength" -> "Fitness"
-        "Hobbies" -> "Creativity"
+        "Creativity", "Hobbies" -> "Hobbies"
         else -> label
     }
 
@@ -44,7 +44,7 @@ object Rules {
         "medicineXp" to "Work",
         "strengthXp" to "Fitness",
         "socialXp" to "Social",
-        "hobbiesXp" to "Creativity"
+        "hobbiesXp" to "Hobbies"
     )
 
     val SKILL_COLORS = mapOf(
@@ -166,7 +166,7 @@ object Rules {
         "medicine" to "Work",
         "strength" to "Fitness",
         "social" to "Social",
-        "hobbies" to "Creativity"
+        "hobbies" to "Hobbies"
     )
 
     val ATTRIBUTE_COLORS = mapOf(

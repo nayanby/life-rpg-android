@@ -147,7 +147,7 @@ enum class Destination(val label: String, val icon: ImageVector) {
     Fitness("Fitness", Icons.Filled.FitnessCenter),
     Social("Social", Icons.Filled.Groups),
     Sleep("Sleep", Icons.Filled.Bedtime),
-    Hobbies("Creativity", Icons.Filled.MusicNote),
+    Hobbies("Hobbies", Icons.Filled.MusicNote),
     Finance("Finance", Icons.Filled.AccountBalanceWallet),
     Notes("My notes", Icons.AutoMirrored.Filled.MenuBook),
     Character("Store", Icons.Filled.Sanitizer),
@@ -250,12 +250,17 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
         bottomBar = { PillNavigation(tab) { open(it) } },
         topBar = {
             TopAppBar(
-                title = { Text(when (destination) {
-                    Destination.Dashboard -> "Home"
-                    Destination.Todo -> "Today"
-                    Destination.More -> "Journal"
-                    else -> destination.label
-                }, style = MaterialTheme.typography.titleLarge) },
+                title = {
+                    Column(Modifier.widthIn(max = 240.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(snapshot.state.playerName, style = MaterialTheme.typography.titleMedium, maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text("Level ${Rules.level(snapshot.state.totalXp)} · ${snapshot.state.totalXp % Rules.XP_PER_LEVEL} / ${Rules.XP_PER_LEVEL} XP",
+                            style = MaterialTheme.typography.labelSmall)
+                        com.healersjourney.app.ui.components.SimpleProgress(
+                            { (snapshot.state.totalXp % Rules.XP_PER_LEVEL).toFloat() / Rules.XP_PER_LEVEL },
+                            Modifier.fillMaxWidth().height(4.dp))
+                    }
+                },
                 navigationIcon = {
                     if (destination !in primary) IconButton(onClick = { destination = tab }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -265,7 +270,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                     if (destination == Destination.More) IconButton(onClick = { open(Destination.Settings) }) {
                         androidx.compose.material3.Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
-                    if (destination == Destination.Character) Row(Modifier.padding(end = 16.dp),
+                    if (destination == Destination.Character || destination == Destination.Todo) Row(Modifier.padding(end = 16.dp),
                         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Image(com.healersjourney.app.ui.components.gameArtPainter(R.drawable.gameart_icon_coin),
                             contentDescription = "Coins", modifier = Modifier.size(28.dp))
@@ -300,11 +305,11 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                     scrollViewportTopPx = it.positionInRoot().y
                     scrollViewportHeightPx = it.size.height.toFloat()
                 }
-                .verticalScroll(screenScroll).padding(start = 20.dp, end = 20.dp, bottom = 12.dp,
+                .verticalScroll(screenScroll).padding(start = 20.dp, end = 20.dp, bottom = if (page == Destination.Notes) 0.dp else 12.dp,
                     // The planner opens with its own day header, so it needs no gap under the app bar.
                     top = if (page == Destination.Todo) 0.dp else 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(bottom = 20.dp)) {
+                Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(bottom = if (page == Destination.Notes) 0.dp else 20.dp)) {
                     when (page) {
                         Destination.Achievements -> ExploreScreen(snapshot, viewModel, open)
                         Destination.Dashboard -> DashboardScreen(snapshot, viewModel, open)

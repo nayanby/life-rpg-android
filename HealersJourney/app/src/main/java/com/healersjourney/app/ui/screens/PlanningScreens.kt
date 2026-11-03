@@ -20,8 +20,28 @@ import kotlinx.coroutines.delay
 @Composable
 fun CategoryPicker(selected: String, onSelect: (String) -> Unit) {
     Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Rules.SKILL_KEYS.forEach { skill -> FilterChip(selected == skill, { onSelect(skill) }, label = { Text(Rules.SKILL_LABELS.getValue(skill)) }) }
+        Rules.SKILL_KEYS.forEach { skill -> CategoryTag(skill, selected == skill) { onSelect(skill) } }
     }
+}
+
+@Composable
+fun CategoryLabel(skill: String) {
+    val accent = androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(Rules.SKILL_COLORS[skill] ?: "#5E8C92"))
+    Surface(shape = RoundedCornerShape(5.dp), color = accent.copy(alpha = .17f)) {
+        Text(Rules.SKILL_LABELS[skill].orEmpty(), Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+@Composable
+fun CategoryTag(skill: String, selected: Boolean, onClick: () -> Unit) {
+    val accent = androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(Rules.SKILL_COLORS[skill] ?: "#5E8C92"))
+    FilterChip(selected, onClick, label = { Text(Rules.SKILL_LABELS[skill] ?: "All", style = MaterialTheme.typography.labelSmall) },
+        shape = RoundedCornerShape(7.dp),
+        colors = FilterChipDefaults.filterChipColors(containerColor = accent.copy(alpha = .12f),
+            selectedContainerColor = accent.copy(alpha = .28f)),
+        border = BorderStroke(if (selected) 1.5.dp else .5.dp, accent.copy(alpha = if (selected) .9f else .3f)),
+        leadingIcon = { Image(gameArtPainter(Art.skillIcon(skill)), null, Modifier.size(16.dp)) })
 }
 
 @Composable
