@@ -2,7 +2,7 @@
 
 An Android life RPG where real-life activities grow your character, earn coins, and unlock outfits, companions and room backdrops. Package: `com.life.rpg`.
 
-The Kotlin / Jetpack Compose project lives in `HealersJourney/`. Its four main tabs are Home, Today, Store and Journal. Home has an outlined name plate with the level, XP bar and badge on its right. It animates into a compact level-and-XP tile on other screens, hiding the name and badge; Today and Store also show the coin balance. Artwork uses individual pixel PNGs, while text stays clear and readable.
+The Kotlin / Jetpack Compose project lives in `HealersJourney/`. Its four main tabs are Home, Today, Store and Journal. Home has an 80 dp outlined name plate with Papyrus text, the level, XP bar and a 68 dp badge on its right. It animates into a compact level-and-XP tile on other screens, hiding the name and badge; Today and Store also show the coin balance. Today places its reset settings to the right of the coins. Artwork uses individual pixel PNGs, while text stays clear and readable.
 
 ## Current experience
 
@@ -49,3 +49,7 @@ See [PRIVACY.md](PRIVACY.md) for local storage, SDK collection and deletion inst
 Runtime artwork is in `HealersJourney/app/src/main/res/`. Design sources and generation prompts are under `HealersJourney/design/`. Store descriptions, graphics, screenshots and their tooling are under `HealersJourney/store-listing/`; generated application bundles and private publishing files are excluded.
 
 The five trophies use transparent PNG artwork with dimensional pixel-art shading. Original generated images and prompts are in `HealersJourney/design/trophies/`; `tools/export_trophy_pngs.py` creates optimized 512-pixel runtime PNGs. Shelf, collection and personal goals use the same cached images. Character artwork and level badges retain their existing style.
+
+## Reward sounds
+
+Task completion uses the supplied `ribhavagrawal-point-smooth-beep-230573.mp3` (`res/raw/task_complete.mp3`). Item unlocks and the three-category/five-category bonuses use `koiroylers-get-coin-351945.mp3` (`res/raw/item_unlock.mp3`). Effects are preloaded and follow the sound toggle and phone ringer mode. Previewing an owned item does not play the unlock sound.

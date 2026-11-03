@@ -31,7 +31,7 @@ import kotlinx.coroutines.sync.withLock
  */
 data class GameSnapshot(val state: GameState, val revision: Int)
 data class GameReward(val xp: Int, val level: Int, val leveledUp: Boolean, val unlocks: List<String>, val care: Boolean,
-                      val name: String, val skill: String = "", val coins: Int = 0)
+                      val name: String, val skill: String = "", val coins: Int = 0, val categoryBonus: Boolean = false)
 
 data class DriveUiState(
     val configured: Boolean = false,
@@ -138,7 +138,7 @@ class GameViewModel(
                 val gain = current.totalXp - xpBefore
                 if (gain > 0 || coinsEarned > 0 || newAction?.type == "care" || unlocks.isNotEmpty()) {
                     rewardChannel.trySend(GameReward(gain.coerceAtLeast(0), Rules.level(current.totalXp),
-                        Rules.level(current.totalXp) > levelBefore, unlocks, newAction?.type == "care", newAction?.name ?: "Adventure complete", newAction?.skill ?: "", coinsEarned))
+                        Rules.level(current.totalXp) > levelBefore, unlocks, newAction?.type == "care", newAction?.name ?: "Adventure complete", newAction?.skill ?: "", coinsEarned, (current.coinRewardDays - coinClaimsBefore).isNotEmpty()))
                 }
             }
             is Outcome.Failure -> showMessage(outcome.message)

@@ -2,7 +2,6 @@ package com.healersjourney.app.ui.components
 
 import android.content.Context
 import android.media.AudioManager
-import android.media.ToneGenerator
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -43,23 +42,19 @@ fun RewardCelebration(viewModel: GameViewModel) {
     val animation = remember { Animatable(0f) }
     val context = LocalContext.current
     val view = LocalView.current
+    val sounds = remember(context) { RewardSounds(context) }
+    DisposableEffect(sounds) { onDispose { sounds.close() } }
     LaunchedEffect(viewModel) {
         viewModel.rewards.collect { event ->
             reward = event
             animation.snapTo(0f)
             val state = viewModel.snapshot.value.state
             if (state.hapticsEnabled) view.performHapticFeedback(if (event.leveledUp) HapticFeedbackConstants.LONG_PRESS else HapticFeedbackConstants.KEYBOARD_TAP)
-            val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            var tone: ToneGenerator? = null
             try {
-                if (state.soundEnabled && audio.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
-                    tone = runCatching { ToneGenerator(AudioManager.STREAM_MUSIC, 35) }.getOrNull()
-                    tone?.startTone(if (event.leveledUp) ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD else ToneGenerator.TONE_PROP_ACK, if (event.leveledUp) 350 else 120)
-                }
+                if (state.soundEnabled) sounds.play(event.unlocks.isNotEmpty() || event.categoryBonus)
                 animation.animateTo(1f, tween(1100))
                 delay(if (event.leveledUp || event.unlocks.isNotEmpty()) 2400 else 600)
             } finally {
-                tone?.release()
                 reward = null
             }
         }

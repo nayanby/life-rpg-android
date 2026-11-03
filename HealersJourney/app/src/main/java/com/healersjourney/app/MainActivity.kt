@@ -219,6 +219,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
     var tab by rememberSaveable { mutableStateOf(Destination.Dashboard) }
     var todaySkill by rememberSaveable { mutableStateOf<String?>(null) }
     var showTitles by rememberSaveable { mutableStateOf(false) }
+    var todaySettings by rememberSaveable { mutableStateOf(false) }
     val primary = listOf(Destination.Dashboard, Destination.Todo, Destination.Character, Destination.More)
     val retiredPages = setOf(Destination.Achievements, Destination.LearningProgress, Destination.WorkProgress, Destination.FitnessProgress, Destination.SocialProgress, Destination.CreativityProgress, Destination.RestProgress)
     val open: (Destination) -> Unit = { next ->
@@ -271,7 +272,8 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                                     fontFamily = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(R.font.papyrus))), maxLines = 1,
                                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 Text("Level ${Rules.level(snapshot.state.totalXp)} | ${snapshot.state.totalXp % Rules.XP_PER_LEVEL} / ${Rules.XP_PER_LEVEL} XP",
-                                    style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(R.font.papyrus))), maxLines = 1)
                                 com.healersjourney.app.ui.components.SimpleProgress(
                                     { (snapshot.state.totalXp % Rules.XP_PER_LEVEL).toFloat() / Rules.XP_PER_LEVEL },
                                     Modifier.fillMaxWidth().height(4.dp))
@@ -295,6 +297,9 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                         Image(com.healersjourney.app.ui.components.gameArtPainter(R.drawable.gameart_icon_coin),
                             contentDescription = "Coins", modifier = Modifier.size(28.dp))
                         Text("${snapshot.state.coins}", style = MaterialTheme.typography.titleMedium)
+                    }
+                    if (destination == Destination.Todo) IconButton(onClick = { todaySettings = true }) {
+                        Icon(Icons.Filled.Settings, "Day reset settings")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -352,7 +357,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                         Destination.Hobbies -> HobbiesScreen(snapshot, viewModel)
                         Destination.Finance -> FinanceScreen(snapshot, viewModel)
                         Destination.Notes -> MyNotesScreen(snapshot, viewModel, screenScroll, scrollViewportTopPx, scrollViewportHeightPx)
-                        Destination.Todo -> TodoScreen(snapshot, viewModel, todaySkill, screenScroll, scrollViewportTopPx) { open(Destination.Sleep) }
+                        Destination.Todo -> TodoScreen(snapshot, viewModel, todaySkill, screenScroll, scrollViewportTopPx, todaySettings, { todaySettings = false }) { open(Destination.Sleep) }
                         Destination.Care -> CareScreen(snapshot, viewModel)
                         Destination.Milestones -> MilestonesScreen(snapshot, viewModel)
                         Destination.Logs -> LogsScreen(snapshot, viewModel)

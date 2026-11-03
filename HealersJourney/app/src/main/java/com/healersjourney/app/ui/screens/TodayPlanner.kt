@@ -84,7 +84,7 @@ private fun savedChoices(state: GameState, category: String, query: String): Pai
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: String? = null,
-               screenScroll: ScrollState, scrollViewportTopPx: Float, onOpenSleep: () -> Unit = {}) {
+               screenScroll: ScrollState, scrollViewportTopPx: Float, daySettings: Boolean = false, onCloseSettings: () -> Unit = {}, onOpenSleep: () -> Unit = {}) {
     val state = snapshot.state
     LaunchedEffect(Unit) {
         while (true) {
@@ -103,22 +103,21 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
     var selected by remember { mutableStateOf<Pair<String, ActivityDef>?>(null) }
     var newPreset by remember { mutableStateOf(false) }
     var removing by remember { mutableStateOf<TodoTask?>(null) }
-    var daySettings by remember { mutableStateOf(false) }
     var editTask by remember { mutableStateOf<TodoTask?>(null) }
-    if (daySettings) AlertDialog(onDismissRequest = { daySettings = false }, title = { Text("Day starts at") },
+    if (daySettings) AlertDialog(onDismissRequest = { onCloseSettings() }, title = { Text("Day starts at") },
         text = { Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
             Text("Tasks, daily rewards and the growth graph follow this time. Existing history keeps its dates.")
             (0..23).forEach { hour ->
                 Row(Modifier.fillMaxWidth().clickable {
-                    viewModel.run { GameEngine.setDayResetHour(it, hour) }; daySettings = false
+                    viewModel.run { GameEngine.setDayResetHour(it, hour) }; onCloseSettings()
                 }, verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(hour == state.dayResetHour, onClick = {
-                        viewModel.run { GameEngine.setDayResetHour(it, hour) }; daySettings = false
+                        viewModel.run { GameEngine.setDayResetHour(it, hour) }; onCloseSettings()
                     })
                     Text("%02d:00".format(hour))
                 }
             }
-        } }, confirmButton = { TextButton(onClick = { daySettings = false }) { Text("Close") } })
+        } }, confirmButton = { TextButton(onClick = { onCloseSettings() }) { Text("Close") } })
     editTask?.let { task -> EditPlannedTaskDialog(task, viewModel, onRemove = { editTask = null; removing = task }) { editTask = null } }
     selected?.let { (skill, activity) -> PresetEditorDialog(skill, snapshot, viewModel, activity) { selected = null } }
     if (newPreset) PresetEditorDialog(category.takeIf { it in Rules.SKILL_KEYS } ?: Rules.SKILL_KEYS.first(), snapshot, viewModel, initialName = query.trim()) { newPreset = false }
@@ -155,7 +154,6 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
                 modifier = Modifier.size(40.dp)) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next day", modifier = Modifier.size(22.dp))
             }
-            IconButton(onClick = { daySettings = true }) { Icon(Icons.Filled.Settings, "Day reset settings") }
         }
         if (!view.viewingToday) AppTextButton(onClick = { viewModel.runQuiet { GameEngine.openTodoWindow(it) } }) { Text("Back to today") }
         if (initialSkill == "sleep") AppTonalButton(onClick = onOpenSleep) { Text("Open sleep tracker") }
