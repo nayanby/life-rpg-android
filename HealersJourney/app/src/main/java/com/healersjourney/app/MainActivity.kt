@@ -255,31 +255,29 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
             TopAppBar(
                 expandedHeight = if (destination == Destination.Dashboard) 88.dp else 64.dp,
                 title = {
-                    val expanded = destination == Destination.Dashboard
-                    androidx.compose.material3.Surface(
-                        modifier = Modifier.animateContentSize(tween(260)).then(if (expanded) Modifier.height(80.dp) else Modifier),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                    ) {
-                        Row((if (expanded) Modifier.fillMaxWidth() else Modifier.widthIn(max = 240.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Column(if (expanded) Modifier.weight(1f) else Modifier.width(180.dp),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                if (expanded) Text(snapshot.state.playerName, style = MaterialTheme.typography.titleMedium.copy(
-                                    fontFamily = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(R.font.papyrus))), maxLines = 1,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                                Text("Level ${Rules.level(snapshot.state.totalXp)} | ${snapshot.state.totalXp % Rules.XP_PER_LEVEL} / ${Rules.XP_PER_LEVEL} XP",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(R.font.papyrus))), maxLines = 1)
-                                com.healersjourney.app.ui.components.SimpleProgress(
-                                    { (snapshot.state.totalXp % Rules.XP_PER_LEVEL).toFloat() / Rules.XP_PER_LEVEL },
-                                    Modifier.fillMaxWidth().height(4.dp))
+                    if (destination == Destination.Dashboard) {
+                        val plateFont = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(R.font.papyrus))
+                        androidx.compose.material3.Surface(
+                            modifier = Modifier.fillMaxWidth().height(80.dp),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(snapshot.state.playerName, style = MaterialTheme.typography.titleMedium.copy(fontFamily = plateFont),
+                                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                    Text("Level ${Rules.level(snapshot.state.totalXp)} | ${snapshot.state.totalXp % Rules.XP_PER_LEVEL} / ${Rules.XP_PER_LEVEL} XP",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = plateFont), maxLines = 1)
+                                    com.healersjourney.app.ui.components.SimpleProgress(
+                                        { (snapshot.state.totalXp % Rules.XP_PER_LEVEL).toFloat() / Rules.XP_PER_LEVEL },
+                                        Modifier.fillMaxWidth().height(4.dp))
+                                }
+                                Image(painterResource(Art.badgeFor(Rules.title(Rules.level(snapshot.state.totalXp)))) ,
+                                    "View levels and titles", Modifier.size(68.dp).clickable { showTitles = true })
                             }
-                            if (expanded) Image(painterResource(Art.badgeFor(Rules.title(Rules.level(snapshot.state.totalXp)))) ,
-                                "View levels and titles", Modifier.size(68.dp).clickable { showTitles = true })
                         }
                     }
                 },

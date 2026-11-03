@@ -1,3 +1,3 @@
 <en-US>
-Fixed a crash when opening Today. The settings button now renders correctly, with device checks for opening Today and its daily reset settings. Includes the refreshed player tile, custom reward sounds, category tags and enlarged Store previews.
+Fixed the crash when opening Today. Added a compact Back to today pill directly below the date. The level tile now appears only on Home. Includes custom completion and unlock sounds, clearer category tags, due care routines and enlarged Store previews.
 </en-US>

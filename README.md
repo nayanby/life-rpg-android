@@ -2,7 +2,7 @@
 
 An Android life RPG where real-life activities grow your character, earn coins, and unlock outfits, companions and room backdrops. Package: `com.life.rpg`.
 
-The Kotlin / Jetpack Compose project lives in `HealersJourney/`. Its four main tabs are Home, Today, Store and Journal. Home has an 80 dp outlined name plate with Papyrus text, the level, XP bar and a 68 dp badge on its right. It animates into a compact level-and-XP tile on other screens, hiding the name and badge; Today and Store also show the coin balance. Today places its reset settings to the right of the coins. Artwork uses individual pixel PNGs, while text stays clear and readable.
+The Kotlin / Jetpack Compose project lives in `HealersJourney/`. Its four main tabs are Home, Today, Store and Journal. Home has an 80 dp outlined name plate with Papyrus text, the level, XP bar and a 68 dp badge on its right. The level tile appears only on Home; Today and Store also show the coin balance. Today places its reset settings to the right of the coins. Artwork uses individual pixel PNGs, while text stays clear and readable.
 
 ## Current experience
 

@@ -133,6 +133,7 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
                 else if (drag < -72.dp.toPx()) viewModel.runQuiet { GameEngine.showNextTodoDay(it) }
             })
     }, verticalArrangement = Arrangement.spacedBy(AppLayout.sectionGap)) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledIconButton(onClick = { viewModel.runQuiet { GameEngine.showPreviousTodoDay(it) } },
                 modifier = Modifier.size(40.dp)) {
@@ -155,7 +156,14 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next day", modifier = Modifier.size(22.dp))
             }
         }
-        if (!view.viewingToday) AppTextButton(onClick = { viewModel.runQuiet { GameEngine.openTodoWindow(it) } }) { Text("Back to today") }
+        if (!view.viewingToday) Surface(
+            onClick = { viewModel.runQuiet { GameEngine.openTodoWindow(it) } },
+            modifier = Modifier.height(24.dp), shape = RoundedCornerShape(50),
+            color = MaterialTheme.colorScheme.primaryContainer) {
+            Text("Back to today", Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+        }
+        }
         if (initialSkill == "sleep") AppTonalButton(onClick = onOpenSleep) { Text("Open sleep tracker") }
         AnimatedContent(targetState = view.key,
             transitionSpec = {
