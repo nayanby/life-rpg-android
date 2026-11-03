@@ -232,9 +232,7 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
             if (mode == "new") NewTodayTask(viewModel, query.trim(), category) { adding = false }
             else CompactTodayCard(title = "Find an activity") {
                 OutlinedTextField(query, { query = it }, label = { Text("Search saved activities") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    (listOf("all") + Rules.SKILL_KEYS).forEach { key -> CategoryTag(key, category == key) { category = key } }
-                }
+                CategoryTags(listOf("all") + Rules.SKILL_KEYS, category) { category = it }
                 val (featured, remaining) = remember(snapshot.revision, category, query) {
                     savedChoices(state, category, query)
                 }
@@ -277,7 +275,7 @@ private fun NewTodayTask(viewModel: GameViewModel, initialName: String, initialS
         OutlinedTextField(name, { name = it.take(100) }, label = { Text("What will you do?") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         CategoryPicker(skill) { skill = it }
         ActivityXpField(xp) { xp = it }
-        Text("Suggested: small effort 10 · focused task 25 · substantial effort 50.", style = MaterialTheme.typography.bodySmall)
+        Text("Choose the XP reward that matches the effort.", style = MaterialTheme.typography.bodySmall)
         Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(save, { save = it }); Text("Save as a new activity") }
         AppButton(onClick = { viewModel.run { state ->
             val amount = xp.toIntOrNull() ?: -1

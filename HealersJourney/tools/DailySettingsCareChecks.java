@@ -13,6 +13,7 @@ public final class DailySettingsCareChecks {
         String day = s.getTodoDate();
         check(s.getTodoTasks().size() == 2, "Due defaults missing");
         check(s.getTodoTasks().stream().allMatch(t -> t.getSkill().equals("socialXp")), "Care is not Social");
+        check(s.getTodoTasks().stream().allMatch(t -> t.getXp() == 40), "Care task XP is not 40");
         e.ensureTodoTasks(s);
         check(s.getTodoTasks().size() == 2, "Care tasks duplicated");
         int original = e.personalCareStats(s).getScore();
@@ -30,11 +31,12 @@ public final class DailySettingsCareChecks {
         check(e.personalCareStats(s).getScore() == 60, "Completion did not refresh character");
         check(s.getCoins() == coins + 40, "Care did not earn 10 coins plus three-category bonus");
         ActionEntry care = s.getActionHistory().get(0);
+        check(care.getXp() == 40 && s.getTotalXp() == 90 && s.getSocialXp() == 40, "Care did not earn 40 Social XP");
         check(care.getSkill().equals("socialXp") && "shower".equals(care.getCareKey()), "Care action linkage lost");
         check(FriendlyLog.INSTANCE.action(care).equals("Took a shower"), "Care log is not friendly");
         check(DailyShowcase.INSTANCE.entries(s, day).size() == 3, "Social care trophy missing");
         e.completePersonalCare(s, "shower", day);
-        check(s.getCoins() == coins + 40, "Repeated care awarded twice");
+        check(s.getCoins() == coins + 40 && s.getTotalXp() == 90, "Repeated care awarded twice");
         check(e.undoTodoTask(s, taskId) instanceof Outcome.Applied, "Care undo failed");
         check(s.getCoins() == coins && s.getTotalXp() == 50, "Undo did not reverse only care coins/bonus");
         check(e.personalCareStats(s).getScore() == original, "Undo did not restore care appearance");

@@ -25,8 +25,8 @@ fun PillNavigation(selected: Destination, onSelect: (Destination) -> Unit) {
             horizontalArrangement = Arrangement.SpaceEvenly) {
             listOf(Triple(Destination.Dashboard, R.drawable.gameart_icon_nav_world, "Home"),
                 Triple(Destination.Todo, R.drawable.gameart_icon_nav_quests, "Today"),
-                Triple(Destination.More, R.drawable.gameart_icon_nav_journal, "Journal"),
-                Triple(Destination.Character, R.drawable.gameart_icon_nav_store, "Store")).forEach { (destination, icon, label) ->
+                Triple(Destination.Character, R.drawable.gameart_icon_nav_store, "Store"),
+                Triple(Destination.More, R.drawable.gameart_icon_nav_journal, "Journal")).forEach { (destination, icon, label) ->
                 val active = selected == destination
                 val pillColor = animateColorAsState(
                     if (active) MaterialTheme.colorScheme.primaryContainer else androidx.compose.ui.graphics.Color.Transparent,

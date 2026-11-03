@@ -217,7 +217,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
     var destination by rememberSaveable { mutableStateOf(Destination.Dashboard) }
     var tab by rememberSaveable { mutableStateOf(Destination.Dashboard) }
     var todaySkill by rememberSaveable { mutableStateOf<String?>(null) }
-    val primary = listOf(Destination.Dashboard, Destination.Todo, Destination.More, Destination.Character)
+    val primary = listOf(Destination.Dashboard, Destination.Todo, Destination.Character, Destination.More)
     val retiredPages = setOf(Destination.Achievements, Destination.LearningProgress, Destination.WorkProgress, Destination.FitnessProgress, Destination.SocialProgress, Destination.CreativityProgress, Destination.RestProgress)
     val open: (Destination) -> Unit = { next ->
         val target = when {

@@ -254,7 +254,29 @@ private fun CompanionArt(id: String, modifier: Modifier) {
 @Composable
 private fun WorldWardrobe(snapshot: GameSnapshot, viewModel: GameViewModel) {
     var slot by remember { mutableStateOf("outfit") }
+    var purchasedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var justPurchased by rememberSaveable { mutableStateOf(false) }
     val state = snapshot.state
+    WorldRules.items.firstOrNull { it.id == purchasedId }?.let { purchased ->
+        AlertDialog(onDismissRequest = { purchasedId = null },
+            title = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(if (justPurchased) "Unlocked!" else "Your collection", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    Text(purchased.name, style = MaterialTheme.typography.headlineSmall)
+                }
+            },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .4f)) {
+                        Image(gameArtPainter(GameArt.item(purchased.slot, purchased.id, state.worldEquipment["character"])),
+                            purchased.name, Modifier.fillMaxWidth().height(if (purchased.slot == "backdrop") 220.dp else 280.dp).padding(12.dp),
+                            contentScale = ContentScale.Fit)
+                    }
+                    Text(if (state.worldEquipment[purchased.slot] == purchased.id) "Equipped and ready." else "Part of your collection.", style = MaterialTheme.typography.bodyMedium)
+                }
+            },
+            confirmButton = { AppButton(onClick = { purchasedId = null }) { Text("Done") } })
+    }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     listOf("outfit" to "Outfits", "companion" to "Companions", "backdrop" to "Backdrops").forEach { (key, label) ->
@@ -267,7 +289,10 @@ private fun WorldWardrobe(snapshot: GameSnapshot, viewModel: GameViewModel) {
                         pair.forEach { item ->
                             val unlocked = item.id in state.worldUnlocks
                             val equipped = state.worldEquipment[slot] == item.id
-                            Surface(Modifier.weight(1f), shape = RoundedCornerShape(16.dp),
+                            Surface(Modifier.weight(1f).clickable(enabled = unlocked, role = Role.Button, onClickLabel = "Preview ${item.name}") {
+                                justPurchased = false
+                                purchasedId = item.id
+                            }, shape = RoundedCornerShape(16.dp),
                                 color = if (equipped) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
                                 border = BorderStroke(1.dp, if (equipped) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
                                 Column(Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally,
@@ -279,7 +304,11 @@ private fun WorldWardrobe(snapshot: GameSnapshot, viewModel: GameViewModel) {
                                     Text(if (unlocked) "Owned" else "Not owned",
                                         style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, maxLines = 1)
                                     AppTonalButton(enabled = !equipped && (unlocked || state.coins >= WorldRules.coinPrice(item)),
-                                        onClick = { viewModel.run { if (unlocked) WorldRules.equip(it, item.id) else WorldRules.buyAndEquip(it, item.id) } },
+                                        onClick = { viewModel.run { current ->
+                                            val result = if (unlocked) WorldRules.equip(current, item.id) else WorldRules.buyAndEquip(current, item.id)
+                                            if (!unlocked && result is Outcome.Applied) { justPurchased = true; purchasedId = item.id }
+                                            result
+                                        } },
                                         modifier = Modifier.fillMaxWidth()) {
                                         if (unlocked) Text(if (equipped) "Equipped" else "Equip")
                                         else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

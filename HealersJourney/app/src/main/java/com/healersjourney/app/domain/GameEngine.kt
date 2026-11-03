@@ -49,6 +49,7 @@ object GameEngine {
     private const val MAX_WEEKLY_BUCKETS = 12
     const val STUDY_CYCLE_CAP = 8.0
     const val CARE_SCORE_MAX = 60
+    const val CARE_ACTIVITY_XP = 40
 
     private val WORKOUT_NAME = Regex("workout|exercise|fitness")
     private val LEGACY_MILESTONE_ID = Regex("^m([1-9]|1[0-2])$")
@@ -592,9 +593,9 @@ object GameEngine {
             val due = last.isEmpty() || Dates.daysBetween(day, last) >= rule.cycleDays
             val id = careTaskId(rule.key, day)
             if (due && state.scheduledOccurrences.add(id) && state.todoTasks.none { it.id == id })
-                state.todoTasks.add(TodoTask(id, rule.label, "socialXp", 0, day))
+                state.todoTasks.add(TodoTask(id, rule.label, "socialXp", CARE_ACTIVITY_XP, day))
             val index = state.todoTasks.indexOfFirst { it.id == id && !it.completed }
-            if (index >= 0) state.todoTasks[index] = state.todoTasks[index].copy(name = rule.label, skill = "socialXp")
+            if (index >= 0) state.todoTasks[index] = state.todoTasks[index].copy(name = rule.label, skill = "socialXp", xp = CARE_ACTIVITY_XP)
         }
     }
 
@@ -678,7 +679,7 @@ object GameEngine {
         if (task.date > Dates.gameDayKey()) return Outcome.Failure("Future tasks can be completed on their planned day.")
         if (task.completed) return Outcome.Applied
         val careRule = state.careRoutines.firstOrNull { careTaskId(it.key, task.date) == task.id }
-        if (careRule != null) return completePersonalCare(state, careRule.key, task.date, task.xp)
+        if (careRule != null) return completePersonalCare(state, careRule.key, task.date)
         tasks[index] = task.copy(completed = true, completedAt = Dates.nowText())
         if (state.focusSession?.taskId == id) state.focusSession = null
         val action = addXp(
@@ -821,7 +822,7 @@ object GameEngine {
     }
 
     @JvmOverloads
-    fun completePersonalCare(state: GameState, key: String, completedDate: String = Dates.gameDayKey(), xp: Int = 0): Outcome {
+    fun completePersonalCare(state: GameState, key: String, completedDate: String = Dates.gameDayKey()): Outcome {
         ensureTodoTasks(state)
         val rule = state.careRoutines.firstOrNull { it.key == key } ?: return Outcome.Failure("Unknown care item.")
         val safeDate = minOf(completedDate, Dates.gameDayKey())
@@ -829,13 +830,13 @@ object GameEngine {
         val previous = state.personalCareLast[key]
         state.personalCareLast[key] = safeDate
         state.personalCareResetBaseline = false
-        val action = addXp(state, "socialXp", xp, rule.label, safeDate)
+        val action = addXp(state, "socialXp", CARE_ACTIVITY_XP, rule.label, safeDate)
         val id = careTaskId(key, safeDate)
         val index = state.actionHistory.indexOfFirst { it.id == action.id }
         state.actionHistory[index] = action.copy(careKey = key, previousCareLast = previous, newCareLast = safeDate, activityId = id)
         val tasks = if (safeDate == state.todoDate) state.todoTasks else state.todoHistory.getOrPut(safeDate) { mutableListOf() }
         val taskIndex = tasks.indexOfFirst { it.id == id }
-        val done = TodoTask(id, rule.label, "socialXp", xp, safeDate, true, Dates.nowText())
+        val done = TodoTask(id, rule.label, "socialXp", CARE_ACTIVITY_XP, safeDate, true, Dates.nowText())
         if (taskIndex >= 0) tasks[taskIndex] = done else tasks.add(done)
         state.scheduledOccurrences.add(id)
         return Outcome.Applied

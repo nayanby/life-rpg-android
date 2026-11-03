@@ -19,8 +19,18 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun CategoryPicker(selected: String, onSelect: (String) -> Unit) {
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Rules.SKILL_KEYS.forEach { skill -> CategoryTag(skill, selected == skill) { onSelect(skill) } }
+    CategoryTags(Rules.SKILL_KEYS, selected, onSelect)
+}
+
+@Composable
+fun CategoryTags(skills: List<String>, selected: String, onSelect: (String) -> Unit) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+        skills.chunked(3).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                row.forEach { skill -> CategoryTag(skill, selected == skill, Modifier.weight(1f)) { onSelect(skill) } }
+                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
     }
 }
 
@@ -34,9 +44,9 @@ fun CategoryLabel(skill: String) {
 }
 
 @Composable
-fun CategoryTag(skill: String, selected: Boolean, onClick: () -> Unit) {
+fun CategoryTag(skill: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val accent = androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(Rules.SKILL_COLORS[skill] ?: "#5E8C92"))
-    FilterChip(selected, onClick, label = { Text(Rules.SKILL_LABELS[skill] ?: "All", style = MaterialTheme.typography.labelSmall) },
+    FilterChip(selected, onClick, modifier = modifier, label = { Text(Rules.SKILL_LABELS[skill] ?: "All", style = MaterialTheme.typography.labelSmall, maxLines = 1) },
         shape = RoundedCornerShape(7.dp),
         colors = FilterChipDefaults.filterChipColors(containerColor = accent.copy(alpha = .12f),
             selectedContainerColor = accent.copy(alpha = .28f)),
