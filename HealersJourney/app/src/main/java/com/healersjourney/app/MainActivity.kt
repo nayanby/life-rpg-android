@@ -252,10 +252,11 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
         bottomBar = { PillNavigation(tab) { open(it) } },
         topBar = {
             TopAppBar(
+                expandedHeight = if (destination == Destination.Dashboard) 88.dp else 64.dp,
                 title = {
                     val expanded = destination == Destination.Dashboard
                     androidx.compose.material3.Surface(
-                        modifier = Modifier.animateContentSize(tween(260)),
+                        modifier = Modifier.animateContentSize(tween(260)).then(if (expanded) Modifier.height(80.dp) else Modifier),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.surface,
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -266,7 +267,8 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Column(if (expanded) Modifier.weight(1f) else Modifier.width(180.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                if (expanded) Text(snapshot.state.playerName, style = MaterialTheme.typography.titleMedium, maxLines = 1,
+                                if (expanded) Text(snapshot.state.playerName, style = MaterialTheme.typography.titleMedium.copy(
+                                    fontFamily = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(R.font.papyrus))), maxLines = 1,
                                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                 Text("Level ${Rules.level(snapshot.state.totalXp)} | ${snapshot.state.totalXp % Rules.XP_PER_LEVEL} / ${Rules.XP_PER_LEVEL} XP",
                                     style = MaterialTheme.typography.labelSmall, maxLines = 1)
@@ -275,7 +277,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                                     Modifier.fillMaxWidth().height(4.dp))
                             }
                             if (expanded) Image(painterResource(Art.badgeFor(Rules.title(Rules.level(snapshot.state.totalXp)))) ,
-                                "View levels and titles", Modifier.size(44.dp).clickable { showTitles = true })
+                                "View levels and titles", Modifier.size(68.dp).clickable { showTitles = true })
                         }
                     }
                 },
