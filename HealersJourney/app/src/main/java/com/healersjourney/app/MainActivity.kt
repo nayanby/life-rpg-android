@@ -35,6 +35,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -252,13 +254,15 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = { PillNavigation(tab) { open(it) } },
         topBar = {
-            TopAppBar(
-                expandedHeight = if (destination == Destination.Dashboard) 88.dp else 64.dp,
-                title = {
-                    if (destination == Destination.Dashboard) {
+            Column {
+            if (destination == Destination.Dashboard) {
+                // Keep the full level card outside the scrolling page and app-bar title slot.
+                Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(horizontal = 20.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
                         val plateFont = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(R.font.papyrus))
                         androidx.compose.material3.Surface(
-                            modifier = Modifier.fillMaxWidth().height(80.dp),
+                            modifier = Modifier.widthIn(max = 640.dp).fillMaxWidth().height(80.dp),
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
                             color = MaterialTheme.colorScheme.surface,
                             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -279,8 +283,10 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                                     "View levels and titles", Modifier.size(68.dp).clickable { showTitles = true })
                             }
                         }
-                    }
-                },
+                }
+            } else TopAppBar(
+                expandedHeight = 64.dp,
+                title = {},
                 navigationIcon = {
                     if (destination !in primary) IconButton(onClick = { destination = tab }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -302,6 +308,11 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
+            Box(Modifier.fillMaxWidth().height(AppLayout.barFadeHeight).background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(listOf(
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.background.copy(alpha = 0f)))))
+            }
         }
     ) { padding ->
         if (!loaded) Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -319,10 +330,10 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
             val density = LocalDensity.current
             val layoutDirection = LocalLayoutDirection.current
             // The keyboard slides over the bottom bar, so the taller of the two insets replaces it rather than stacking.
-            val bottomInset = maxOf(padding.calculateBottomPadding(),
+            val bottomInset = maxOf((padding.calculateBottomPadding() - AppLayout.barFadeHeight).coerceAtLeast(0.dp),
                 with(density) { WindowInsets.ime.getBottom(this).toDp() })
             Column(Modifier.fillMaxSize()
-                .padding(top = padding.calculateTopPadding(), start = padding.calculateStartPadding(layoutDirection),
+                .padding(top = (padding.calculateTopPadding() - AppLayout.barFadeHeight).coerceAtLeast(0.dp), start = padding.calculateStartPadding(layoutDirection),
                     end = padding.calculateEndPadding(layoutDirection), bottom = bottomInset)
                 .onGloballyPositioned {
                     scrollViewportTopPx = it.positionInRoot().y

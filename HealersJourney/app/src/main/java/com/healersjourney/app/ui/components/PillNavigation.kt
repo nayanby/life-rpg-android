@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -20,8 +21,11 @@ import com.healersjourney.app.R
 
 @Composable
 fun PillNavigation(selected: Destination, onSelect: (Destination) -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
-        Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
+    val surface = MaterialTheme.colorScheme.surface
+    Surface(color = androidx.compose.ui.graphics.Color.Transparent, contentColor = MaterialTheme.colorScheme.onSurface) {
+        Row(Modifier.fillMaxWidth().background(Brush.verticalGradient(
+            0f to surface.copy(alpha = 0f), .18f to surface, 1f to surface))
+            .padding(top = AppLayout.barFadeHeight).navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly) {
             listOf(Triple(Destination.Dashboard, R.drawable.gameart_icon_nav_world, "Home"),
                 Triple(Destination.Todo, R.drawable.gameart_icon_nav_quests, "Today"),
