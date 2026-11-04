@@ -90,7 +90,9 @@ fun RewardCelebration(viewModel: GameViewModel) {
                         if (t < 1f) drawCircle(if (i % 2 == 0) Color(0xFFFFD577) else Color(0xFF99DFDA), 3.dp.toPx(), point)
                     }
                 }
-                Column(Modifier.padding(28.dp).clip(RoundedCornerShape(30.dp)).background(MaterialTheme.colorScheme.surface)
+                Surface(Modifier.padding(28.dp), shape = RoundedCornerShape(30.dp),
+                    color = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurface) {
+                Column(Modifier
                     .padding(24.dp).semantics { liveRegion = LiveRegionMode.Polite }, horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (event.leveledUp) Image(painterResource(Art.badgeFor(Rules.title(event.level))), null, Modifier.size(100.dp))
@@ -107,6 +109,7 @@ fun RewardCelebration(viewModel: GameViewModel) {
                     if (event.care) Text("Your character reflects your latest care routines.", style = MaterialTheme.typography.bodySmall)
                     event.unlocks.forEach { Text("Unlocked: $it", style = MaterialTheme.typography.titleSmall) }
                     Text("Tap to continue", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 }
             }
         }

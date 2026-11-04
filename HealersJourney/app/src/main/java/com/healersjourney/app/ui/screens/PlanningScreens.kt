@@ -23,7 +23,9 @@ fun CategoryPicker(selected: String, onSelect: (String) -> Unit) {
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun CategoryTags(skills: List<String>, selected: String, onSelect: (String) -> Unit) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 36.dp) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(0.dp)) {
         skills.chunked(3).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -31,6 +33,7 @@ fun CategoryTags(skills: List<String>, selected: String, onSelect: (String) -> U
                 repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
+    }
     }
 }
 

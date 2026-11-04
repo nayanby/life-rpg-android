@@ -43,7 +43,6 @@ object Ids {
  */
 object GameEngine {
 
-    private const val MAX_HISTORY = 4000
     private const val MAX_LOG = 100
     private const val MAX_DATES = 180
     private const val MAX_WEEKLY_BUCKETS = 12
@@ -155,9 +154,6 @@ object GameEngine {
         state.actionHistory.add(0, action)
         if (skill in Rules.SKILL_KEYS && type in listOf("activity", "study", "hobby", "other", "workout")) {
             syncDailyCoinBonuses(state, date)
-        }
-        while (state.actionHistory.size > MAX_HISTORY) {
-            state.coinAwardedActionIds.remove(state.actionHistory.removeAt(state.actionHistory.size - 1).id)
         }
         return action
     }
@@ -592,6 +588,10 @@ object GameEngine {
             val last = state.personalCareLast[rule.key].orEmpty()
             val due = last.isEmpty() || Dates.daysBetween(day, last) >= rule.cycleDays
             val id = careTaskId(rule.key, day)
+            if (!due) {
+                val removed = state.todoTasks.removeAll { it.id == id && !it.completed }
+                if (removed) state.scheduledOccurrences.remove(id)
+            }
             if (due && state.scheduledOccurrences.add(id) && state.todoTasks.none { it.id == id })
                 state.todoTasks.add(TodoTask(id, rule.label, "socialXp", CARE_ACTIVITY_XP, day))
             val index = state.todoTasks.indexOfFirst { it.id == id && !it.completed }
@@ -828,7 +828,7 @@ object GameEngine {
         val safeDate = minOf(completedDate, Dates.gameDayKey())
         if (state.actionHistory.any { it.careKey == key && it.date == safeDate }) return Outcome.Applied
         val previous = state.personalCareLast[key]
-        state.personalCareLast[key] = safeDate
+        state.personalCareLast[key] = maxOf(previous.orEmpty(), safeDate)
         state.personalCareResetBaseline = false
         val action = addXp(state, "socialXp", CARE_ACTIVITY_XP, rule.label, safeDate)
         val id = careTaskId(key, safeDate)
@@ -982,7 +982,14 @@ object GameEngine {
         if (!action.careKey.isNullOrEmpty()) {
             ensurePersonalCare(state)
             val key = action.careKey
-            val previous = action.previousCareLast
+            // Reconnect snapshots that depended on this completion, even when undo is out of order.
+            state.actionHistory.indices.forEach { index ->
+                val later = state.actionHistory[index]
+                if (later.id != action.id && later.careKey == key && later.previousCareLast == action.newCareLast)
+                    state.actionHistory[index] = later.copy(previousCareLast = action.previousCareLast)
+            }
+            val previous = state.actionHistory.filter { it.id != action.id && it.careKey == key }
+                .maxOfOrNull { it.newCareLast ?: it.date } ?: action.previousCareLast
             if (previous != null) {
                 state.personalCareLast[key] = previous
             } else {
@@ -1011,9 +1018,33 @@ object GameEngine {
             }
         }
         state.actionHistory.removeAt(index)
+        recalculateDailyRewards(state, action.skill, action.date)
         if (action.skill in Rules.SKILL_KEYS) syncDailyCoinBonuses(state, action.date)
         recomputeDatesFromHistory(state)
         return true
+    }
+
+    /** Undo releases the removed activity's place in the daily XP tiers. */
+    private fun recalculateDailyRewards(state: GameState, skill: String, day: String) {
+        if (skill !in Rules.SKILL_KEYS) return
+        var used = 0L
+        fun cumulative(value: Long) = minOf(value, 200L) * 4 +
+            (value - 200).coerceIn(0L, 200L) * 2 + (value - 400).coerceAtLeast(0)
+        state.actionHistory.indices.reversed().forEach { index ->
+            val action = state.actionHistory[index]
+            if (action.skill != skill || action.date != day || action.type !in listOf("activity", "study", "hobby", "other")) return@forEach
+            val base = (if (action.baseXp > 0) action.baseXp else action.xp).coerceAtLeast(0)
+            // Legacy records without base XP cannot be reconstructed; keep their original award.
+            if (action.baseXp == 0 && action.xp > 0) { used += base; return@forEach }
+            val xp = ((cumulative(used + base) + 2) / 4 - (cumulative(used) + 2) / 4).toInt()
+            used += base
+            val difference = xp - action.xp
+            state.totalXp += difference
+            state.addSkillXp(skill, difference)
+            state.weeklyAttrXp[action.week]?.let { it[skill] = (it[skill] ?: 0) + difference }
+            state.actionHistory[index] = action.copy(xp = xp,
+                decayPercent = if (base == 0) 0 else (100 - xp * 100.0 / base).roundToInt().coerceIn(0, 100))
+        }
     }
 
     fun undoActionById(state: GameState, actionId: String): Boolean {

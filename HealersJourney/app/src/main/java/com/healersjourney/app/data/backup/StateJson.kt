@@ -41,7 +41,7 @@ object StateJson {
 
     fun restoreLocalExtras(state: GameState, text: String) {
         val extras = JSONObject(text)
-        val saved = decode(text)
+        val saved = decodeState(extras)
         PlanningJson.restore(state, extras.optJSONObject("planning"))
         state.thoughts.addAll(saved.thoughts)
         state.dayResetHour = saved.dayResetHour
@@ -146,7 +146,16 @@ object StateJson {
     /** Accepts either a backup envelope or a bare state object. */
     fun decode(text: String): GameState {
         val root = JSONObject(text)
+        require(!root.has("state") || root.opt("state") is JSONObject) { "The backup state must be an object." }
         val json = root.optJSONObject("state") ?: root
+        require(json.opt("totalXp") is Number || json.opt("playerName") is String) {
+            "This is not a Life RPG backup. Choose a complete exported backup."
+        }
+        require(!json.has("totalXp") || json.opt("totalXp") is Number) { "Invalid XP in backup." }
+        require(!json.has("playerName") || json.opt("playerName") is String) { "Invalid player name in backup." }
+        listOf("actionHistory", "todoTasks", "thoughts").forEach { key ->
+            require(!json.has(key) || json.opt(key) is JSONArray) { "Invalid $key in backup." }
+        }
         return decodeState(json)
     }
 

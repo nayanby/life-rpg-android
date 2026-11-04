@@ -67,7 +67,7 @@ public final class DailySettingsCareChecks {
         GameState local = new GameState();
         StateJson.INSTANCE.restoreLocalExtras(local, StateJson.INSTANCE.encodeLocalExtras(s).toString());
         check(local.getDayResetHour() == 9, "Local save lost reset hour");
-        check(StateJson.INSTANCE.decode("{}").getDayResetHour() == 5, "Old backup changed default reset");
+        check(StateJson.INSTANCE.decode("{\"playerName\":\"Legacy\"}").getDayResetHour() == 5, "Old backup changed default reset");
         e.setDayResetHour(s, 0);
         time.set(2026, Calendar.NOVEMBER, 3, 0, 0, 0);
         check(dates.gameDayKey(time).equals("2026-11-03"), "Midnight reset failed");

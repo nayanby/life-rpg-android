@@ -44,7 +44,8 @@ public final class CoinChecks {
         int dragon = WorldRules.INSTANCE.coinPrice(WorldRules.INSTANCE.getItems().stream()
             .filter(item -> item.getId().equals("dragon")).findFirst().orElseThrow());
         check(knight + dragon == 3500 && (knight + dragon) / 20 == 175, "six-month final-item pacing");
-        GameState restored = StateJson.INSTANCE.decode(StateJson.INSTANCE.encodeLocalExtras(state).toString());
+        GameState restored = new GameState();
+        StateJson.INSTANCE.restoreLocalExtras(restored, StateJson.INSTANCE.encodeLocalExtras(state).toString());
         check(restored.getCoins() == 50 && restored.getCoinAwardedActionIds().size() == 7, "local coin persistence");
         GameState backup = StateJson.INSTANCE.decode(StateJson.INSTANCE.backupEnvelope(state));
         check(backup.getCoins() == 50 && backup.getWorldUnlocks().contains("forest_cloak"), "backup coin persistence");

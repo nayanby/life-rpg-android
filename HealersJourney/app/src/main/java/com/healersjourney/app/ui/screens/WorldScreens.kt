@@ -40,7 +40,7 @@ fun WorldHome(snapshot: GameSnapshot, viewModel: GameViewModel, onOpen: (Destina
                     Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 Row(Modifier.fillMaxWidth().height(214.dp).padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                WorldCharacter(state, Modifier.size(176.dp), onTap = { onOpen(Destination.Care) }, showCompanion = false)
+                WorldCharacter(state, Modifier.size(176.dp), showCompanion = false, onTap = { onOpen(Destination.Care) })
                 state.worldEquipment["companion"]?.takeIf { it != "none" }?.let { companion ->
                     val place = when (companion) {
                         "owl", "star", "cloud", "firefly" -> Alignment.TopCenter
@@ -255,10 +255,13 @@ private fun WorldWardrobe(snapshot: GameSnapshot, viewModel: GameViewModel) {
     val state = snapshot.state
     WorldRules.items.firstOrNull { it.id == purchasedId }?.let { purchased ->
         AlertDialog(onDismissRequest = { purchasedId = null },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurface,
             title = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(if (justPurchased) "Unlocked!" else "Your collection", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                    Text(purchased.name, style = MaterialTheme.typography.headlineSmall)
+                    Text(purchased.name, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
                 }
             },
             text = {
@@ -268,7 +271,7 @@ private fun WorldWardrobe(snapshot: GameSnapshot, viewModel: GameViewModel) {
                             purchased.name, Modifier.fillMaxWidth().height(if (purchased.slot == "backdrop") 220.dp else 280.dp).padding(12.dp),
                             contentScale = ContentScale.Fit)
                     }
-                    Text(if (state.worldEquipment[purchased.slot] == purchased.id) "Equipped and ready." else "Part of your collection.", style = MaterialTheme.typography.bodyMedium)
+                    Text(if (state.worldEquipment[purchased.slot] == purchased.id) "Equipped and ready." else "Part of your collection.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
             },
             confirmButton = { AppButton(onClick = { purchasedId = null }) { Text("Done") } })

@@ -94,14 +94,12 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
     }
     val view = remember(snapshot.revision) { GameEngine.getTodoListForView(state) }
     var adding by rememberSaveable(view.key, initialSkill) { mutableStateOf(initialSkill in Rules.SKILL_KEYS) }
-    var mode by rememberSaveable { mutableStateOf("saved") }
     var query by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable(initialSkill) { mutableStateOf(initialSkill?.takeIf { it in Rules.SKILL_KEYS } ?: "all") }
     var visibleExtra by rememberSaveable(view.key, query, category) { mutableIntStateOf(0) }
     var pickerButtonTopPx by remember { mutableIntStateOf(0) }
     val scrollScope = rememberCoroutineScope()
     var selected by remember { mutableStateOf<Pair<String, ActivityDef>?>(null) }
-    var newPreset by remember { mutableStateOf(false) }
     var removing by remember { mutableStateOf<TodoTask?>(null) }
     var editTask by remember { mutableStateOf<TodoTask?>(null) }
     if (daySettings) AlertDialog(onDismissRequest = { onCloseSettings() }, title = { Text("Day starts at") },
@@ -120,7 +118,6 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
         } }, confirmButton = { TextButton(onClick = { onCloseSettings() }) { Text("Close") } })
     editTask?.let { task -> EditPlannedTaskDialog(task, viewModel, onRemove = { editTask = null; removing = task }) { editTask = null } }
     selected?.let { (skill, activity) -> PresetEditorDialog(skill, snapshot, viewModel, activity) { selected = null } }
-    if (newPreset) PresetEditorDialog(category.takeIf { it in Rules.SKILL_KEYS } ?: Rules.SKILL_KEYS.first(), snapshot, viewModel, initialName = query.trim()) { newPreset = false }
     removing?.let { task -> AlertDialog(onDismissRequest = { removing = null }, title = { Text("Remove ${task.name}?") },
         text = { Text(if (task.completed) "This will also remove the XP, coins and trophy earned from this task." else "This task will be removed from your day.") },
         confirmButton = { AppTextButton(onClick = { viewModel.run { GameEngine.deleteTodoTask(it, task.id) }; removing = null }) { Text("Remove") } },
@@ -201,7 +198,6 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
             }
         }
         if (!adding) AppButton(onClick = {
-                mode = "saved"
                 query = ""
                 category = initialSkill?.takeIf { it in Rules.SKILL_KEYS } ?: "all"
                 visibleExtra = 0
@@ -231,21 +227,19 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
                 androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(140))
         ) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = mode == "saved", onClick = { mode = "saved" }, label = { Text("Saved activities") })
-                FilterChip(selected = mode == "new", onClick = { mode = "new" }, label = { Text("New task") })
-            }
-            if (mode == "new") NewTodayTask(viewModel, query.trim(), category) { adding = false }
-            else CompactTodayCard(title = "Find an activity") {
-                OutlinedTextField(query, { query = it }, label = { Text("Search saved activities") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                CategoryTags(listOf("all") + Rules.SKILL_KEYS, category) { category = it }
+            CompactTodayCard(title = "Find or create a task") {
+                OutlinedTextField(query, { query = it.take(100) }, label = { Text("Search activities or type a new task") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 val (featured, remaining) = remember(snapshot.revision, category, query) {
                     savedChoices(state, category, query)
                 }
                 val initialResults = if (query.isBlank()) 0 else 10
                 val shownOthers = (initialResults + visibleExtra).coerceAtMost(remaining.size)
                 val visible = featured + remaining.take(shownOthers)
-                if (visible.isEmpty()) Text("No matching activities. Create a new task or save a new activity.")
+                if (visible.isNotEmpty() || query.isBlank()) CategoryTags(listOf("all") + Rules.SKILL_KEYS, category) { category = it }
+                if (visible.isEmpty() && query.isNotBlank()) {
+                    Text("No saved activity found. Add this as a new task.", style = MaterialTheme.typography.bodySmall)
+                    NewTodayTask(viewModel, query.trim(), category) { query = ""; adding = false }
+                } else if (visible.isEmpty()) Text("Type a task above to get started.")
                 visible.forEach { (skill, activity, uses) ->
                     val name = Rules.activityLabel(skill, activity.name)
                     val added = view.list.any { it.skill == skill && it.name.equals(name, true) }
@@ -261,8 +255,7 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
                 }
                 if (shownOthers < remaining.size) AppTextButton(onClick = { visibleExtra += 10 },
                     modifier = Modifier.fillMaxWidth()) { Text("More activities (next ${minOf(10, remaining.size - shownOthers)})") }
-                Text("Hold an activity to edit or delete it.", style = MaterialTheme.typography.bodySmall)
-                AppTextButton(onClick = { newPreset = true }) { Text("Save a new activity${if (category in Rules.SKILL_KEYS) " in ${Rules.SKILL_LABELS[category]}" else ""}") }
+                if (visible.isNotEmpty()) Text("Hold an activity to edit or delete it.", style = MaterialTheme.typography.bodySmall)
             }
         }
         }
@@ -273,23 +266,22 @@ fun TodoScreen(snapshot: GameSnapshot, viewModel: GameViewModel, initialSkill: S
 
 @Composable
 private fun NewTodayTask(viewModel: GameViewModel, initialName: String, initialSkill: String, onAdded: () -> Unit) {
-    var name by rememberSaveable { mutableStateOf(initialName) }
+    val name = initialName
     var skill by rememberSaveable { mutableStateOf(initialSkill.takeIf { it in Rules.SKILL_KEYS } ?: Rules.SKILL_KEYS.first()) }
     var xp by rememberSaveable { mutableStateOf("20") }
     var save by rememberSaveable { mutableStateOf(false) }
-    SectionCard(title = "New task") {
-        OutlinedTextField(name, { name = it.take(100) }, label = { Text("What will you do?") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         CategoryPicker(skill) { skill = it }
         ActivityXpField(xp) { xp = it }
         Text("Choose the XP reward that matches the effort.", style = MaterialTheme.typography.bodySmall)
-        Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(save, { save = it }); Text("Save as a new activity") }
-        AppButton(onClick = { viewModel.run { state ->
+        Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(save, { save = it }); Text("Save as activity") }
+        AppButton(enabled = name.isNotBlank(), onClick = { viewModel.run { state ->
             val amount = xp.toIntOrNull() ?: -1
             val result = GameEngine.addPlannedActivity(state, name, skill, amount, save, emptySet())
             if (result is Outcome.Applied) {
                 onAdded()
             }
             result
-        } }) { Text("Add task") }
+        } }) { Text(if (save) "Add task and save activity" else "Add new task") }
     }
 }

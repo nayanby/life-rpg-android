@@ -26,7 +26,7 @@ public final class JournalAndGoalsChecks {
         json.restoreLocalExtras(local, json.encodeLocalExtras(state).toString());
         check(local.getThoughts().size() == 1 && local.getThoughts().get(0).getText().contains("🌻"), "Room extras lost thought");
         check(Thoughts.INSTANCE.save(state, "2026-02-31", "bad") instanceof Outcome.Failure, "Invalid journal date accepted");
-        check(json.decode("{}").getThoughts().isEmpty(), "Old backup failed");
+        check(json.decode("{\"playerName\":\"Legacy\"}").getThoughts().isEmpty(), "Old backup failed");
 
         check(engine.addPlannedActivity(state, "  Drink water  ", "strengthXp", 0, true, Collections.emptySet()) instanceof Outcome.Applied, "Zero-XP task/preset rejected");
         TodoTask task = state.getTodoTasks().get(0);
