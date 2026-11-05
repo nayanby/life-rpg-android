@@ -33,30 +33,97 @@ fun TrophyDetail(state: GameState, action: ActionEntry, onDismiss: () -> Unit) {
 
 @Composable
 fun TrophyCollectionDialog(state: GameState, onDismiss: () -> Unit) {
-    var category by remember { mutableStateOf("all") }
+    var monthly by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     var selected by remember { mutableStateOf<ActionEntry?>(null) }
-    selected?.let { TrophyDetail(state, it) { selected = null }; return }
-    val entries = state.actionHistory.filter { DailyShowcase.collection(it.skill) != null &&
-        it.type in setOf("activity", "study", "hobby", "workout", "other") && (category == "all" || category == it.skill) }.sortedByDescending { it.ts }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Your trophy collection") }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                (listOf("all") + Rules.SKILL_KEYS).forEach { skill -> FilterChip(category == skill, { category = skill }, label = { Text(Rules.SKILL_LABELS[skill] ?: "All") }) }
-            }
-            Text("${entries.size} earned trophies", style = MaterialTheme.typography.labelLarge)
-            LazyColumn(Modifier.heightIn(max = 380.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (entries.isEmpty()) item { Text("Complete an activity to start your collection.") }
-                items(entries, key = { it.id }) { action ->
-                    Row(Modifier.fillMaxWidth().clickable { selected = action }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TrophyImage(action.skill, Modifier.size(60.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(Rules.activityLabel(action.skill, action.originalName ?: action.name), style = MaterialTheme.typography.bodyMedium)
-                            Text("${Dates.prettyCareDate(action.date)} Â· ${action.xp} XP", style = MaterialTheme.typography.labelSmall)
+    val periods = TrophyCollection.periods(state, monthly)
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground) {
+            Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars).padding(horizontal = 20.dp)) {
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Collection", Modifier.weight(1f), style = MaterialTheme.typography.headlineSmall)
+                    AppTextButton(onClick = onDismiss) { Text("Close") }
+                }
+                Surface(Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Row(Modifier.padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf(false to "Week", true to "Month").forEach { (isMonth, label) ->
+                            Surface(onClick = { monthly = isMonth }, modifier = Modifier.weight(1f),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+                                color = if (monthly == isMonth) MaterialTheme.colorScheme.primaryContainer else androidx.compose.ui.graphics.Color.Transparent,
+                                contentColor = if (monthly == isMonth) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant) {
+                                Box(Modifier.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
+                                    Text(label, style = MaterialTheme.typography.labelLarge)
+                                }
+                            }
+                        }
+                    }
+                }
+                key(monthly) {
+                    LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (periods.isEmpty()) item {
+                            Text("Complete an activity to start your collection.", Modifier.padding(vertical = 24.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        items(periods, key = { it.start }) { period ->
+                            CollectionPeriodCard(period, monthly) { selected = it }
                         }
                     }
                 }
             }
         }
-    }, confirmButton = { AppTextButton(onClick = onDismiss) { Text("Close") } })
+    }
+    selected?.let { TrophyDetail(state, it) { selected = null } }
+}
+
+@Composable
+private fun CollectionPeriodCard(period: TrophyCollection.Period, monthly: Boolean, onSelect: (ActionEntry) -> Unit) {
+    var expanded by androidx.compose.runtime.saveable.rememberSaveable(period.start, monthly) { mutableStateOf(false) }
+    Surface(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            val month = period.start.substring(5, 7).toInt()
+            Text(if (monthly) "${Dates.monthName(month)} ${period.start.take(4)}"
+                else "Week of ${Dates.prettyCareDate(period.start)}", style = MaterialTheme.typography.titleMedium)
+            if (!monthly) Text("${Dates.prettyCareDate(period.start)} – ${Dates.prettyCareDate(period.end)}",
+                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${period.entries.size} trophies · ${period.activeDays} active days", style = MaterialTheme.typography.bodyMedium)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("${period.xp} XP ·", style = MaterialTheme.typography.labelLarge)
+                Image(gameArtPainter(com.healersjourney.app.R.drawable.gameart_icon_coin), null, Modifier.size(18.dp))
+                Text("${period.coins} coins", style = MaterialTheme.typography.labelLarge)
+            }
+            if (monthly) {
+                DailyShowcase.collections.forEach { category ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        TrophyImage(category.skill, Modifier.size(36.dp))
+                        Text(category.title, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Text("${period.count(category.skill)}", style = MaterialTheme.typography.titleSmall)
+                    }
+                }
+            } else {
+                val visible = if (expanded) period.entries else period.entries.take(24)
+                visible.chunked(6).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        row.forEach { action ->
+                            Box(Modifier.weight(1f).aspectRatio(1f).clickable(onClickLabel = "View trophy") { onSelect(action) },
+                                contentAlignment = Alignment.Center) {
+                                TrophyImage(action.skill, Modifier.fillMaxSize().padding(3.dp),
+                                    description = Rules.activityLabel(action.skill, action.originalName ?: action.name))
+                            }
+                        }
+                        repeat(6 - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+                if (period.entries.size > 24) AppTextButton(onClick = { expanded = !expanded }) {
+                    Text(if (expanded) "Show fewer trophies" else "Show all ${period.entries.size} trophies")
+                }
+            }
+        }
+    }
 }
