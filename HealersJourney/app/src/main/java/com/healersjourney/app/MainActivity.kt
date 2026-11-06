@@ -282,7 +282,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
-            Box(Modifier.fillMaxWidth().height(AppLayout.barFadeHeight).background(
+            Box(Modifier.fillMaxWidth().height(AppLayout.topBarFadeHeight).background(
                 com.healersjourney.app.ui.components.barFadeBrush(MaterialTheme.colorScheme.background, fadesDown = true)))
             }
         }
@@ -305,7 +305,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
             val bottomInset = maxOf((padding.calculateBottomPadding() - AppLayout.barFadeHeight).coerceAtLeast(0.dp),
                 with(density) { WindowInsets.ime.getBottom(this).toDp() })
             Column(Modifier.fillMaxSize()
-                .padding(top = (padding.calculateTopPadding() - AppLayout.barFadeHeight).coerceAtLeast(0.dp), start = padding.calculateStartPadding(layoutDirection),
+                .padding(top = (padding.calculateTopPadding() - AppLayout.topBarFadeHeight).coerceAtLeast(0.dp), start = padding.calculateStartPadding(layoutDirection),
                     end = padding.calculateEndPadding(layoutDirection), bottom = bottomInset)
                 .onGloballyPositioned {
                     scrollViewportTopPx = it.positionInRoot().y
@@ -313,7 +313,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
                 }
                 .verticalScroll(screenScroll).padding(start = 20.dp, end = 20.dp, bottom = if (page == Destination.Notes) 0.dp else 12.dp,
                     // The planner opens with its own day header, so it needs no gap under the app bar.
-                    top = if (page == Destination.Todo) 0.dp else 12.dp),
+                    top = AppLayout.topBarFadeHeight + if (page == Destination.Todo) 0.dp else 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(bottom = if (page == Destination.Notes) 0.dp else 20.dp)) {
                     if (page == Destination.Dashboard) {

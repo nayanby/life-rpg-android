@@ -24,7 +24,7 @@ fun TrophyDetail(state: GameState, action: ActionEntry, onDismiss: () -> Unit) {
             TrophyImage(action.skill, Modifier.size(200.dp), description = "${Rules.SKILL_LABELS[action.skill]} earned trophy")
             Text(Rules.SKILL_LABELS[action.skill] ?: "Activity", style = MaterialTheme.typography.titleMedium)
             Text("Completed ${Dates.prettyCareDate(action.date)}", style = MaterialTheme.typography.bodyMedium)
-            Text("${action.xp} XP · ${if (action.id in state.coinAwardedActionIds) 10 else 0} coins", style = MaterialTheme.typography.titleMedium)
+            Text("${action.xp} XP Â· ${if (action.id in state.coinAwardedActionIds) 10 else 0} coins", style = MaterialTheme.typography.titleMedium)
             Text("Completed $count ${if (count == 1) "time" else "times"} so far", style = MaterialTheme.typography.bodySmall)
             Text("Category bonuses are shown separately on the shelf.", style = MaterialTheme.typography.labelSmall)
         }
@@ -33,9 +33,10 @@ fun TrophyDetail(state: GameState, action: ActionEntry, onDismiss: () -> Unit) {
 
 @Composable
 fun TrophyCollectionDialog(state: GameState, onDismiss: () -> Unit) {
-    var monthly by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    var rangeIndex by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<ActionEntry?>(null) }
-    val periods = TrophyCollection.periods(state, monthly)
+    val range = TrophyCollection.Range.entries[rangeIndex]
+    val periods = TrophyCollection.cards(state, range)
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background,
@@ -49,19 +50,19 @@ fun TrophyCollectionDialog(state: GameState, onDismiss: () -> Unit) {
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
                     color = MaterialTheme.colorScheme.surfaceVariant) {
                     Row(Modifier.padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        listOf(false to "Week", true to "Month").forEach { (isMonth, label) ->
-                            Surface(onClick = { monthly = isMonth }, modifier = Modifier.weight(1f),
+                        listOf("THIS WEEK", "THIS MONTH", "THIS YEAR").forEachIndexed { index, label ->
+                            Surface(onClick = { rangeIndex = index }, modifier = Modifier.weight(1f),
                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
-                                color = if (monthly == isMonth) MaterialTheme.colorScheme.primaryContainer else androidx.compose.ui.graphics.Color.Transparent,
-                                contentColor = if (monthly == isMonth) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant) {
+                                color = if (rangeIndex == index) MaterialTheme.colorScheme.primaryContainer else androidx.compose.ui.graphics.Color.Transparent,
+                                contentColor = if (rangeIndex == index) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant) {
                                 Box(Modifier.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
-                                    Text(label, style = MaterialTheme.typography.labelLarge)
+                                    Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1)
                                 }
                             }
                         }
                     }
                 }
-                key(monthly) {
+                key(rangeIndex) {
                     LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(bottom = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         if (periods.isEmpty()) item {
@@ -69,7 +70,7 @@ fun TrophyCollectionDialog(state: GameState, onDismiss: () -> Unit) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         items(periods, key = { it.start }) { period ->
-                            CollectionPeriodCard(period, monthly) { selected = it }
+                            CollectionPeriodCard(period, range) { selected = it }
                         }
                     }
                 }
@@ -80,24 +81,29 @@ fun TrophyCollectionDialog(state: GameState, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun CollectionPeriodCard(period: TrophyCollection.Period, monthly: Boolean, onSelect: (ActionEntry) -> Unit) {
-    var expanded by androidx.compose.runtime.saveable.rememberSaveable(period.start, monthly) { mutableStateOf(false) }
+private fun CollectionPeriodCard(period: TrophyCollection.Period, range: TrophyCollection.Range, onSelect: (ActionEntry) -> Unit) {
+    var expanded by androidx.compose.runtime.saveable.rememberSaveable(period.start, range) { mutableStateOf(false) }
     Surface(Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurface,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             val month = period.start.substring(5, 7).toInt()
-            Text(if (monthly) "${Dates.monthName(month)} ${period.start.take(4)}"
-                else "Week of ${Dates.prettyCareDate(period.start)}", style = MaterialTheme.typography.titleMedium)
-            if (!monthly) Text("${Dates.prettyCareDate(period.start)} � ${Dates.prettyCareDate(period.end)}",
+            val weekday = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")[Planning.weekday(period.start) - 1]
+            val heading = when (range) {
+                TrophyCollection.Range.Week -> "$weekday · ${Dates.prettyCareDate(period.start)}"
+                TrophyCollection.Range.Month -> "Week of ${Dates.prettyCareDate(Dates.weekKeyOf(period.start))}"
+                TrophyCollection.Range.Year -> "${Dates.monthName(month)} ${period.start.take(4)}"
+            }
+            Text(heading, style = MaterialTheme.typography.titleMedium)
+            if (range == TrophyCollection.Range.Month) Text("${Dates.prettyCareDate(period.start)} – ${Dates.prettyCareDate(period.end)}",
                 style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("${period.entries.size} trophies � ${period.activeDays} active days", style = MaterialTheme.typography.bodyMedium)
+            Text(if (range == TrophyCollection.Range.Week) "${period.entries.size} trophies" else "${period.entries.size} trophies · ${period.activeDays} active days", style = MaterialTheme.typography.bodyMedium)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("${period.xp} XP �", style = MaterialTheme.typography.labelLarge)
+                Text("${period.xp} XP ·", style = MaterialTheme.typography.labelLarge)
                 Image(gameArtPainter(com.healersjourney.app.R.drawable.gameart_icon_coin), null, Modifier.size(18.dp))
                 Text("${period.coins} coins", style = MaterialTheme.typography.labelLarge)
             }
-            if (monthly) {
+            if (range == TrophyCollection.Range.Year) {
                 DailyShowcase.collections.forEach { category ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -107,6 +113,8 @@ private fun CollectionPeriodCard(period: TrophyCollection.Period, monthly: Boole
                     }
                 }
             } else {
+                if (period.entries.isEmpty()) Text("No trophies yet.", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val visible = if (expanded) period.entries else period.entries.take(24)
                 visible.chunked(6).forEach { row ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
