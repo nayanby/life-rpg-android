@@ -10,7 +10,8 @@ import androidx.compose.ui.unit.dp
 
 /** Shared dimensions; minimum heights allow larger accessibility text to grow. */
 object AppLayout {
-    val barFadeHeight = 21.dp
+    val bottomBarFadeHeight = 48.dp
+    val bottomBarFadeGap = 5.dp
     val topBarFadeHeight = 48.dp
     val screenPadding = 16.dp
     val sectionGap = 20.dp

@@ -23,7 +23,8 @@ fun PillNavigation(selected: Destination, onSelect: (Destination) -> Unit) {
     val surface = MaterialTheme.colorScheme.surface
     Surface(color = androidx.compose.ui.graphics.Color.Transparent, contentColor = MaterialTheme.colorScheme.onSurface) {
         Column {
-        Box(Modifier.fillMaxWidth().height(AppLayout.barFadeHeight).background(barFadeBrush(surface, fadesDown = false)))
+        Box(Modifier.fillMaxWidth().height(AppLayout.bottomBarFadeHeight).background(barFadeBrush(surface, fadesDown = false)))
+        Spacer(Modifier.fillMaxWidth().height(AppLayout.bottomBarFadeGap).background(surface))
         Row(Modifier.fillMaxWidth().background(surface)
             .navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly) {

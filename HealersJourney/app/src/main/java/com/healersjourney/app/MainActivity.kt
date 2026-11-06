@@ -302,7 +302,7 @@ fun AppRoot(viewModel: GameViewModel, onSignIn: () -> Unit,
             val density = LocalDensity.current
             val layoutDirection = LocalLayoutDirection.current
             // The keyboard slides over the bottom bar, so the taller of the two insets replaces it rather than stacking.
-            val bottomInset = maxOf((padding.calculateBottomPadding() - AppLayout.barFadeHeight).coerceAtLeast(0.dp),
+            val bottomInset = maxOf((padding.calculateBottomPadding() - AppLayout.bottomBarFadeHeight).coerceAtLeast(0.dp),
                 with(density) { WindowInsets.ime.getBottom(this).toDp() })
             Column(Modifier.fillMaxSize()
                 .padding(top = (padding.calculateTopPadding() - AppLayout.topBarFadeHeight).coerceAtLeast(0.dp), start = padding.calculateStartPadding(layoutDirection),
